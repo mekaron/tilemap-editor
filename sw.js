@@ -18,11 +18,27 @@ self.addEventListener('message',  (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    if (e.request.url.match( /^.*(imgur=).*$/) ) {
+    if (e.request.url.match(/^.*(imgur=).*$/)) {
         return false;
     }
+
     console.log(e.request.url);
+
     e.respondWith(
-        caches.match(e.request).then((response) => fetch(e.request) || response),
+        caches.match(e.request).then((response) => {
+            const fetchPromise = fetch(e.request)
+                .then((networkResponse) => {
+                    caches.open(cacheName).then((cache) => {
+                        cache.put(e.request, networkResponse.clone());
+                    });
+                    return networkResponse;
+                })
+                .catch(() => {
+                    // Network request failed, serve cached response if available
+                    return response;
+                });
+
+            return response || fetchPromise;
+        }),
     );
 });
