@@ -300,6 +300,10 @@ cursor: pointer;
   padding: 0 3px;
   border-bottom: 1px solid #80808045;
 }
+.rename_layer {
+  cursor: pointer;
+  padding: 0 3px;
+}
 .tileset_info{
   margin-left: 3px;
   color: #ececcd;
