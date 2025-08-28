@@ -199,6 +199,16 @@
         draw();
     }
 
+    const renameLayer = (index) => {
+        const layerNumber = Number(index);
+        const newName = prompt("Enter layer name", maps[ACTIVE_MAP].layers[layerNumber].name);
+        if(newName !== null){
+            maps[ACTIVE_MAP].layers[layerNumber].name = newName;
+            updateLayers();
+            addToUndoStack();
+        }
+    }
+
     const addLayer = () => {
         const newLayerName = prompt("Enter layer name", `Layer${maps[ACTIVE_MAP].layers.length + 1}`);
         if(newLayerName !== null) {
@@ -213,6 +223,7 @@
               <div class="layer" draggable="true" data-layer-index="${index}">
                 <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
                 <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
+                <div id="renameLayerBtn-${index}" rename-layer="${index}" class="rename_layer">✏️</div>
                 <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "":`disabled="true"`}>🗑️</div>
               </div>
             `
@@ -255,6 +266,9 @@
             document.getElementById(`setLayerVisBtn-${index}`).addEventListener("click",e=>{
                 setLayerIsVisible(e.target.getAttribute("vis-layer"))
                 addToUndoStack();
+            })
+            document.getElementById(`renameLayerBtn-${index}`).addEventListener("click",e=>{
+                renameLayer(e.target.getAttribute("rename-layer"))
             })
             document.getElementById(`trashLayerBtn-${index}`).addEventListener("click",e=>{
                 trashLayer(e.target.getAttribute("trash-layer"))
