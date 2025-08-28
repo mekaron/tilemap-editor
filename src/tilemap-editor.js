@@ -210,7 +210,7 @@
     const updateLayers = () => {
         layersElement.innerHTML = maps[ACTIVE_MAP].layers.map((layer, index)=>{
             return `
-              <div class="layer">
+              <div class="layer" draggable="true" data-layer-index="${index}">
                 <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
                 <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
                 <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "":`disabled="true"`}>🗑️</div>
@@ -219,6 +219,35 @@
         }).reverse().join("\n")
 
         maps[ACTIVE_MAP].layers.forEach((_,index)=>{
+            const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
+            layerEl.addEventListener("dragstart", e => {
+                e.dataTransfer.setData("text/plain", String(index));
+            });
+            layerEl.addEventListener("dragover", e => {
+                e.preventDefault();
+                layerEl.classList.add("drop-target");
+            });
+            layerEl.addEventListener("dragleave", () => {
+                layerEl.classList.remove("drop-target");
+            });
+            layerEl.addEventListener("drop", e => {
+                e.preventDefault();
+                layerEl.classList.remove("drop-target");
+                const fromIndex = Number(e.dataTransfer.getData("text/plain"));
+                const toIndex = index;
+                if(fromIndex !== toIndex){
+                    const layers = maps[ACTIVE_MAP].layers;
+                    [layers[fromIndex], layers[toIndex]] = [layers[toIndex], layers[fromIndex]];
+                    if(currentLayer === fromIndex){
+                        currentLayer = toIndex;
+                    } else if(currentLayer === toIndex){
+                        currentLayer = fromIndex;
+                    }
+                    updateLayers();
+                    addToUndoStack();
+                }
+            });
+
             document.getElementById(`selectLayerBtn-${index}`).addEventListener("click",e=>{
                 setLayer(e.target.getAttribute("tile-layer"));
                 addToUndoStack();
