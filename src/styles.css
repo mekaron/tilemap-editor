@@ -376,6 +376,21 @@ cursor: pointer;
   }
 }
 
+.layer-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px;
+    gap: 5px;
+}
+
+.layer-settings-header button {
+    background-color: #6b6b6b;
+    color: white;
+    border: 1px solid #757575;
+    margin: 2px;
+}
+
 .sticky {
   background: #000000;
   color: #ffffff;

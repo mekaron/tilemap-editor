@@ -169,6 +169,18 @@ const TilemapEditor = {};
                 updateLayers();
             });
         }
+        const activeLayerName = document.getElementById("activeLayerName");
+        if(activeLayerName) {
+            activeLayerName.innerText = maps[ACTIVE_MAP].layers[newLayer]?.name;
+        }
+        const renameLayerBtn = document.querySelector(".rename-layer");
+        if(renameLayerBtn) {
+            renameLayerBtn.onclick = () => renameLayer(currentLayer);
+        }
+        const deleteLayerBtn = document.querySelector(".delete-layer");
+        if(deleteLayerBtn) {
+            deleteLayerBtn.onclick = () => trashLayer(currentLayer);
+        }
     }
 
     const setLayerIsVisible = (layer, override = null) => {
@@ -222,8 +234,6 @@ const TilemapEditor = {};
                 <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}" draggable="false">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
                 <span id="setLayerVisBtn-${index}" vis-layer="${index}" draggable="false"></span>
                 <span id="lockLayerBtn-${index}" lock-layer="${index}" draggable="false"></span>
-                <div id="renameLayerBtn-${index}" rename-layer="${index}" class="rename_layer" draggable="false">✏️</div>
-                <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "" : `disabled="true"`} draggable="false">🗑️</div>
               </div>
             `
         }).reverse().join("\n")
@@ -300,15 +310,6 @@ const TilemapEditor = {};
             document.getElementById(`lockLayerBtn-${index}`).addEventListener("pointerup",e=>{
                 e.stopPropagation();
                 setLayerIsLocked(e.target.getAttribute("lock-layer"))
-                addToUndoStack();
-            })
-            document.getElementById(`renameLayerBtn-${index}`).addEventListener("pointerup",e=>{
-                e.stopPropagation();
-                renameLayer(e.target.getAttribute("rename-layer"))
-            })
-            document.getElementById(`trashLayerBtn-${index}`).addEventListener("pointerup",e=>{
-                e.stopPropagation();
-                trashLayer(e.target.getAttribute("trash-layer"))
                 addToUndoStack();
             })
             setLayerIsVisible(index, true);
