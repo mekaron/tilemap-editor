@@ -312,7 +312,7 @@ const TilemapEditor = {};
                 addToUndoStack();
             })
             setLayerIsVisible(index, true);
-            setLayerIsLocked(index, maps[ACTIVE_MAP].layers[index].locked);
+            setLayerIsLocked(index, maps[ACTIVE_MAP].layers[index].locked ?? false);
         })
         setLayer(currentLayer);
     }
