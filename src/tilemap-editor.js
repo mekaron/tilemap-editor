@@ -29,7 +29,7 @@ const TilemapEditor = {};
             isMouseDown = true;
         }
         const onMouseUp = () => {
-            if(!element.getAttribute("isDraggable") === "false") return;
+            if (element.getAttribute("isDraggable") === "false") return;
             isMouseDown = false;
             elementX = parseInt(element.style.left) || 0;
             elementY = parseInt(element.style.top) || 0;
