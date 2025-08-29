@@ -1,15 +1,6 @@
 // @ts-check
-(function (root, factory) {
-    // @ts-ignore
-    if (typeof exports === 'object' && typeof exports.nodeName !== 'string') {
-        // CommonJS
-        factory(exports);
-    } else {
-        // Browser globals
-        // @ts-ignore
-        factory((root.TilemapEditor = {}));
-    }
-})(typeof self !== 'undefined' ? self : this, function (exports) {
+import { GoldenLayout } from 'https://cdn.jsdelivr.net/npm/@antosubash/golden-layout@2.6.0/dist/bundle/esm/golden-layout.js';
+const TilemapEditor = {};
     // Call once on element to add behavior, toggle on/off isDraggable attr to enable
     const draggable = ({element, onElement = null, isDrag = false, onDrag = null,
                            limitX = false, limitY = false, onRelease = null}) => {
@@ -68,7 +59,7 @@
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
-    exports.toBase64 = toBase64;
+    TilemapEditor.toBase64 = toBase64;
 
     const decoupleReferenceFromObj = (obj) => JSON.parse(JSON.stringify(obj));
     const getHtml = async () => {
@@ -873,7 +864,7 @@
         draw();
     }
 
-    exports.getLayers = ()=> {
+    TilemapEditor.getLayers = ()=> {
         return maps[ACTIVE_MAP].layers;
     }
 
@@ -1254,7 +1245,7 @@
     }
 
     // Create the tilemap-editor in the dom and its events
-    exports.init = async (
+    TilemapEditor.init = async (
         attachToId,
         {
             tileMapData, // the main data
@@ -1331,7 +1322,7 @@
             onUpdate(...args);
             saveStateToLocalStorage();
         };
-        exports.onUpdate = apiOnUpdateCallback;
+        TilemapEditor.onUpdate = apiOnUpdateCallback;
 
         if(onMouseUp){
             apiOnMouseUp = onMouseUp;
@@ -1709,7 +1700,7 @@
             IMAGES.push({src});
             reloadTilesets();
         }
-        exports.addNewTileSet = addNewTileSet;
+        TilemapEditor.addNewTileSet = addNewTileSet;
         // replace tileset
         document.getElementById("tilesetReplaceInput").addEventListener("change",e=>{
             toBase64(e.target.files[0]).then(base64Src=>{
@@ -1757,7 +1748,7 @@
         tileSetLoadersSel.addEventListener("change", e=>{
             selectedTileSetLoader = apiTileSetLoaders[e.target.value];
         })
-        exports.tilesetLoaders = apiTileSetLoaders;
+        TilemapEditor.tilesetLoaders = apiTileSetLoaders;
 
         const deleteTilesetWithIndex = (index, cb = null) => {
             if(confirm(`Are you sure you want to delete this image?`)){
@@ -1767,8 +1758,8 @@
                 if(cb) cb()
             }
         }
-        exports.IMAGES = IMAGES;
-        exports.deleteTilesetWithIndex = deleteTilesetWithIndex;
+        TilemapEditor.IMAGES = IMAGES;
+        TilemapEditor.deleteTilesetWithIndex = deleteTilesetWithIndex;
         document.getElementById("removeTilesetBtn").addEventListener("click",()=>{
             //Remove current tileset
             if (tilesetDataSel.value !== "0") {
@@ -1827,7 +1818,7 @@
             }
             apiTileMapExporters[key].getData = () => exporter.transformer(getExportData());
         })
-        exports.exporters = apiTileMapExporters;
+        TilemapEditor.exporters = apiTileMapExporters;
 
         Object.entries(apiTileMapImporters).forEach(([key, importer])=>{
             makeMenuItem(importer.name, key,importer.description).onclick = () => {
@@ -1897,7 +1888,7 @@
         requestAnimationFrame(animateTiles);
     };
 
-    exports.getState = () => {
+    TilemapEditor.getState = () => {
         return getAppState();
     }
     const saveStateToLocalStorage = () => {
@@ -1908,8 +1899,8 @@
         }
     };
 
-    exports.onUpdate = apiOnUpdateCallback;
-    exports.onMouseUp = apiOnMouseUp;
+    TilemapEditor.onUpdate = apiOnUpdateCallback;
+    TilemapEditor.onMouseUp = apiOnMouseUp;
 
-    exports.getTilesets = () => tileSets;
-});
+    TilemapEditor.getTilesets = () => tileSets;
+window.TilemapEditor = TilemapEditor;
