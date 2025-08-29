@@ -74,7 +74,7 @@ const TilemapEditor = {};
         });
         return template;
     };
-    const getEmptyLayer = (name="layer")=> ({tiles:{}, visible: true, name, animatedTiles: {}, opacity: 1});
+    const getEmptyLayer = (name="layer")=> ({tiles:{}, visible: true, name, opacity: 1});
     let tilesetImage, canvas, tilesetContainer, tilesetSelection, cropSize,
         confirmBtn, tilesetGridContainer,
         layersElement, resizingCanvas, mapTileHeight, mapTileWidth, tileDataSel,tileFrameSel,tileAnimSel,
@@ -141,7 +141,6 @@ const TilemapEditor = {};
     let apiOnUpdateCallback = () => {};
     let apiOnMouseUp = () => {};
 
-    let editedEntity
 
     const getContext = () =>  canvas.getContext('2d');
 
@@ -365,7 +364,7 @@ const TilemapEditor = {};
         if(autoSelectTool && ![TOOLS.BRUSH, TOOLS.RAND, TOOLS.FILL].includes(ACTIVE_TOOL)) setActiveTool(TOOLS.BRUSH);
 
         // show/hide param editor
-       if(tileDataSel.value === "frames" && editedEntity) objectParametersEditor.classList.add('entity');
+       if(tileDataSel.value === "frames") objectParametersEditor.classList.add('entity');
        else objectParametersEditor.classList.remove('entity');
        onUpdateState();
     }
@@ -507,76 +506,6 @@ const TilemapEditor = {};
                     );
                 }
             });
-            // animated tiles
-            Object.keys(layer.animatedTiles || {}).forEach((key) => {
-                const [positionX, positionY] = key.split('-').map(Number);
-                const {start, width, height, frameCount, isFlippedX} = layer.animatedTiles[key];
-                const {x, y, tilesetIdx} = start;
-                const tileSize = tileSets[tilesetIdx]?.tileSize || SIZE_OF_CROP;
-
-                if(!(tilesetIdx in TILESET_ELEMENTS)) { //texture not found
-                    ctx.fillStyle = 'yellow';
-                    ctx.fillRect(positionX * SIZE_OF_CROP * ZOOM, positionY * SIZE_OF_CROP * ZOOM, SIZE_OF_CROP  * ZOOM * width, SIZE_OF_CROP  * ZOOM * height);
-                    ctx.fillStyle = 'blue';
-                    ctx.fillText("X",positionX * SIZE_OF_CROP * ZOOM + 5,positionY * SIZE_OF_CROP  * ZOOM + 10);
-                    return;
-                }
-                const frameIndex = tileDataSel.value === "frames" || frameCount === 1 ? Math.round(Date.now()/120) % frameCount : 1; //30fps
-
-                if(isFlippedX) {
-                    ctx.save();//Special canvas crap to flip a slice, cause drawImage cant do it
-                    ctx.translate(ctx.canvas.width, 0);
-                    ctx.scale(-1, 1);
-
-                    const positionXFlipped = ctx.canvas.width - (positionX * SIZE_OF_CROP * ZOOM) - SIZE_OF_CROP * ZOOM;
-                    if(shouldDrawGrid && !shouldHideHud) {
-                        ctx.beginPath();
-                        ctx.lineWidth = 1;
-                        ctx.strokeStyle = 'rgba(250,240,255, 0.7)';
-                        ctx.rect(positionXFlipped, positionY * SIZE_OF_CROP * ZOOM, SIZE_OF_CROP * ZOOM * width, SIZE_OF_CROP * ZOOM * height);
-                        ctx.stroke();
-                    }
-                    ctx.drawImage(
-                        TILESET_ELEMENTS[tilesetIdx],
-                        x * tileSize + (frameIndex * tileSize * width),
-                        y * tileSize,
-                        tileSize * width,// src width
-                        tileSize * height, // src height
-                        positionXFlipped,
-                        positionY * SIZE_OF_CROP * ZOOM, //target y
-                        SIZE_OF_CROP * ZOOM * width, // target width
-                        SIZE_OF_CROP * ZOOM * height // target height
-                    );
-                    if(shouldDrawGrid && !shouldHideHud) {
-                        ctx.fillStyle = 'white';
-                        ctx.fillText("🔛",positionXFlipped + 5,positionY * SIZE_OF_CROP * ZOOM + 10);
-                    }
-                    ctx.restore();
-                }else {
-                    if(shouldDrawGrid && !shouldHideHud) {
-                        ctx.beginPath();
-                        ctx.lineWidth = 1;
-                        ctx.strokeStyle = 'rgba(250,240,255, 0.7)';
-                        ctx.rect(positionX * SIZE_OF_CROP * ZOOM, positionY * SIZE_OF_CROP * ZOOM, SIZE_OF_CROP * ZOOM * width, SIZE_OF_CROP * ZOOM * height);
-                        ctx.stroke();
-                    }
-                    ctx.drawImage(
-                        TILESET_ELEMENTS[tilesetIdx],
-                        x * tileSize + (frameIndex * tileSize * width),//src x
-                        y * tileSize,//src y
-                        tileSize * width,// src width
-                        tileSize * height, // src height
-                        positionX * SIZE_OF_CROP * ZOOM, //target x
-                        positionY * SIZE_OF_CROP * ZOOM, //target y
-                        SIZE_OF_CROP * ZOOM * width, // target width
-                        SIZE_OF_CROP * ZOOM * height // target height
-                    );
-                    if(shouldDrawGrid && !shouldHideHud) {
-                        ctx.fillStyle = 'white';
-                        ctx.fillText("⭕",positionX * SIZE_OF_CROP * ZOOM + 5,positionY * SIZE_OF_CROP * ZOOM + 10);
-                    }
-                }
-            })
         });
         if(SHOW_GRID)drawGrid(WIDTH, HEIGHT, ctx,SIZE_OF_CROP * ZOOM, maps[ACTIVE_MAP].gridColor);
         onUpdateState();
@@ -604,7 +533,6 @@ const TilemapEditor = {};
     const removeTile=(key) =>{
         if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         delete maps[ACTIVE_MAP].layers[currentLayer].tiles[key];
-        if (key in (maps[ACTIVE_MAP].layers[currentLayer].animatedTiles || {})) delete maps[ACTIVE_MAP].layers[currentLayer].animatedTiles[key];
     }
 
     const isFlippedOnX = () => document.getElementById("toggleFlipX").checked;
@@ -630,38 +558,15 @@ const TilemapEditor = {};
         }
     }
     const getCurrentFrames = () => tileSets[tilesetDataSel.value]?.frames[tileFrameSel.value];
-    const getSelectedFrameCount = () => getCurrentFrames()?.frameCount || 1;
-    const shouldNotAddAnimatedTile = () => (tileDataSel.value !== "frames" && getSelectedFrameCount() !== 1) || Object.keys(tileSets[tilesetDataSel.value]?.frames).length === 0;
     const addTile = (key) => {
         if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
-        if (shouldNotAddAnimatedTile()) {
-            addSelectedTiles(key);
-        } else {
-            // if animated tile mode and has more than one frames, add/remove to animatedTiles
-            if(!maps[ACTIVE_MAP].layers[currentLayer].animatedTiles) maps[ACTIVE_MAP].layers[currentLayer].animatedTiles = {};
-            const isFlippedX = isFlippedOnX();
-            const [x,y] = key.split("-");
-            maps[ACTIVE_MAP].layers[currentLayer].animatedTiles[key] = {
-                ...getCurrentFrames(),
-                isFlippedX, layer: currentLayer,
-                xPos: Number(x) * SIZE_OF_CROP, yPos: Number(y) * SIZE_OF_CROP
-            };
-        }
+        addSelectedTiles(key);
     }
 
     const addRandomTile = (key) =>{
         if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         // TODO add probability for empty
-        if (shouldNotAddAnimatedTile()) {
-            maps[ACTIVE_MAP].layers[currentLayer].tiles[key] = selection[Math.floor(Math.random()*selection.length)];
-        }else {
-            // do the same, but add random from frames instead
-            const tilesetTiles = tileSets[tilesetDataSel.value].tileData;
-            const {frameCount, tiles, width} = getCurrentFrames();
-            const randOffset = Math.floor(Math.random()*frameCount);
-            const randXOffsetTiles = tiles.map(tile=>tilesetTiles[`${tile.x + randOffset * width}-${tile.y}`]);
-            addSelectedTiles(key,randXOffsetTiles);
-        }
+        maps[ACTIVE_MAP].layers[currentLayer].tiles[key] = selection[Math.floor(Math.random()*selection.length)];
 
     }
 
@@ -692,25 +597,18 @@ const TilemapEditor = {};
     }
     const getTile =(key, allLayers = false)=> {
         const layers = maps[ACTIVE_MAP].layers;
-        editedEntity = undefined;
         const clicked = allLayers ?
             [...layers].reverse().find((layer,index)=> {
-                if(layer.animatedTiles && key in layer.animatedTiles) {
-                    setLayer(layers.length - index - 1);
-                    editedEntity = layer.animatedTiles[key];
-                }
                 if(key in layer.tiles){
                     setLayer(layers.length - index - 1);
                     return layer.tiles[key]
                 }
-            })?.tiles[key] //TODO this doesnt work on animatedTiles
+            })?.tiles[key]
             :
             layers[currentLayer].tiles[key];
 
-        if (clicked && !editedEntity) {
+        if (clicked) {
             selection = [clicked];
-
-            // console.log("clicked", clicked, "entity data",editedEntity)
             document.getElementById("toggleFlipX").checked = !!clicked?.isFlippedX;
             // TODO switch to different tileset if its from a different one
             // if(clicked.tilesetIdx !== tilesetDataSel.value) {
@@ -721,18 +619,8 @@ const TilemapEditor = {};
             selectMode("");
             updateSelection();
             return true;
-        } else if (editedEntity){
-            // console.log("Animated tile found", editedEntity)
-            selection = editedEntity.tiles;
-            document.getElementById("toggleFlipX").checked = editedEntity.isFlippedX;
-            setLayer(editedEntity.layer);
-            tileFrameSel.value = editedEntity.name;
-            updateSelection();
-            selectMode("frames");
-            return true;
-        }else {
-            return false;
         }
+        return false;
     }
 
     const toggleTile=(event)=> {
@@ -758,9 +646,9 @@ const TilemapEditor = {};
             else if(ACTIVE_TOOL === TOOLS.FILL || ACTIVE_TOOL === TOOLS.RAND) setActiveTool(TOOLS.BRUSH); //
         } else {
             if(ACTIVE_TOOL === TOOLS.BRUSH){
-                addTile(key);// also works with animated
+                addTile(key);
             } else if(ACTIVE_TOOL === TOOLS.ERASE) {
-                removeTile(key);// also works with animated
+                removeTile(key);
             } else if (ACTIVE_TOOL === TOOLS.RAND){
                 addRandomTile(key);
             } else if (ACTIVE_TOOL === TOOLS.FILL){
@@ -1919,12 +1807,6 @@ const TilemapEditor = {};
             SHOW_GRID = appState.SHOW_GRID;
         }
 
-        // Animated tiles when on frames mode
-        const animateTiles = () => {
-            if (tileDataSel.value === "frames") draw();
-            requestAnimationFrame(animateTiles);
-        }
-        requestAnimationFrame(animateTiles);
     };
 
     TilemapEditor.getState = () => {
