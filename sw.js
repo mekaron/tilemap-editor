@@ -23,26 +23,23 @@ self.addEventListener('fetch', (e) => {
     }
 
     e.respondWith(
-        caches.open(cacheName).then((cache) => {
-            return cache.match(e.request).then((response) => {
-                const fetchPromise = fetch(e.request).then((networkResponse) => {
-                    // If we got a valid response, clone it and update the cache
-                    if (networkResponse && networkResponse.status === 200) {
-                        console.log(`[SW] Caching new resource: ${e.request.url}`);
-                        cache.put(e.request, networkResponse.clone());
-                    }
-                    return networkResponse;
-                });
-
+        fetch(e.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200 && e.request.method === 'GET') {
+                console.log(`[SW] Caching new resource: ${e.request.url}`);
+                const clone = networkResponse.clone();
+                caches.open(cacheName).then((cache) => cache.put(e.request, clone));
+            }
+            console.log(`[SW] Serving from network: ${e.request.url}`);
+            return networkResponse;
+        }).catch(() => {
+            return caches.match(e.request).then((response) => {
                 if (response) {
                     console.log(`[SW] Serving from cache: ${e.request.url}`);
                 } else {
-                    console.log(`[SW] Fetching from network: ${e.request.url}`);
+                    console.log(`[SW] No cache found for: ${e.request.url}`);
                 }
-
-                // Return the cached response if it exists, otherwise wait for the network
-                return response || fetchPromise;
+                return response;
             });
-        }),
+        })
     );
 });
