@@ -1,0 +1,65 @@
+Project Implementation Plan: Mobile Touch Compatibility
+
+This document outlines the necessary steps to make the tilemap editor fully compatible with touch-based devices like tablets.
+
+## 1. Canvas Interaction
+
+**Objective:** Replace mouse-specific canvas interactions with touch-friendly gestures.
+
+**Tasks:**
+- **Implement Long-Press for Tile Picking:**
+  - On `pointerdown` on the canvas, start a 500ms timer.
+  - If the pointer is held down for the duration without significant movement, fire a `long-press` event.
+  - The `long-press` event will trigger the existing tile-picking logic currently bound to right-click.
+  - If the pointer is released or moved before the timer completes, cancel the timer and proceed with the standard drawing/erasing action.
+- **Implement Two-Finger Pan Gesture:**
+  - Add event listeners for `touchstart`, `touchmove`, and `touchend`.
+  - When two fingers are detected on the canvas (`e.touches.length === 2`), disable the drawing/erasing logic.
+  - Calculate the distance and angle between the two touch points on `touchmove`.
+  - Use the change in distance to implement pinch-to-zoom.
+  - Use the change in position of the midpoint between the two fingers to implement panning.
+  - On `touchend`, when one or both fingers are lifted, re-enable the drawing/erasing logic.
+
+## 2. Tileset Interaction
+
+**Objective:** Replace mouse-specific tileset interactions with touch-friendly gestures.
+
+**Tasks:**
+- **Implement Long-Press for Renaming:**
+  - On `pointerdown` on a tile in the tileset view, start a 500ms timer.
+  - If the pointer is held down for the duration, fire a `long-press` event.
+  - The `long-press` event will trigger the existing rename functionality currently bound to right-click/double-click.
+  - If the pointer is released before the timer completes, cancel the timer and proceed with the standard tile selection logic.
+
+## 3. Layer Management
+
+**Objective:** Improve the reliability of layer reordering on touch devices.
+
+**Tasks:**
+- **Replace HTML5 Drag-and-Drop:**
+  - Remove the `draggable="true"` attribute and the existing `dragstart`, `dragover`, `dragleave`, and `drop` event listeners from the layer elements.
+  - Implement a custom drag-and-drop solution using pointer events (`pointerdown`, `pointermove`, `pointerup`).
+  - On `pointerdown` on a layer, record the initial pointer position and the layer being dragged.
+  - On `pointermove`, update the position of the dragged layer using CSS transforms to follow the pointer.
+  - While dragging, determine the drop target by checking the position of the dragged layer relative to the other layers in the list.
+  - On `pointerup`, update the underlying layers array with the new order and re-render the layer list.
+
+## 4. CSS and Visual Feedback
+
+**Objective:** Ensure all interactive elements provide clear visual feedback on touch.
+
+**Tasks:**
+- **Audit and Update CSS:**
+  - Search the codebase for all instances of the `:hover` pseudo-class.
+  - For each instance, add a corresponding `:active` pseudo-class or a JavaScript-driven `.active` class to provide visual feedback on tap.
+  - Pay special attention to buttons, tool selectors, and layer elements.
+
+## 5. General Usability
+
+**Objective:** Ensure all UI elements are large enough to be easily tapped.
+
+**Tasks:**
+- **Increase Touch Target Sizes:**
+  - Review all interactive elements, including buttons, icons, and sliders.
+  - Ensure that all touch targets have a minimum size of 44x44 pixels, either through increased element size or by adding padding.
+  - This may require adjustments to the layout and styling of the toolbar and other UI panels.
