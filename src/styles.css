@@ -264,7 +264,6 @@ cursor: pointer;
 }
 .card_left_column{
   min-width: 240px;
-  max-width: 285px;
   overflow: auto;
   padding-right: 3px;
   max-height: 90vh;
