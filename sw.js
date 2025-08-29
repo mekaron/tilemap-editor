@@ -3,10 +3,10 @@ const cacheName = "1629829956916";
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(cacheName).then((cache) => cache.addAll([
-      '/tilemap-editor/',
-      '/tilemap-editor/index.html',
-      '/tilemap-editor/src/tilemap-editor.js',
-      '/tilemap-editor/src/styles.css',
+      '/',
+      '/index.html',
+      '/src/tilemap-editor.js',
+      '/src/styles.css',
     ])),
   );
 });
@@ -18,27 +18,31 @@ self.addEventListener('message',  (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    if (e.request.url.match(/^.*(imgur=).*$/)) {
-        return false;
+    if (e.request.url.includes('imgur') || e.request.url.startsWith('chrome-extension://')) {
+        return;
     }
 
-    console.log(e.request.url);
-
     e.respondWith(
-        caches.match(e.request).then((response) => {
-            const fetchPromise = fetch(e.request)
-                .then((networkResponse) => {
-                    caches.open(cacheName).then((cache) => {
+        caches.open(cacheName).then((cache) => {
+            return cache.match(e.request).then((response) => {
+                const fetchPromise = fetch(e.request).then((networkResponse) => {
+                    // If we got a valid response, clone it and update the cache
+                    if (networkResponse && networkResponse.status === 200) {
+                        console.log(`[SW] Caching new resource: ${e.request.url}`);
                         cache.put(e.request, networkResponse.clone());
-                    });
+                    }
                     return networkResponse;
-                })
-                .catch(() => {
-                    // Network request failed, serve cached response if available
-                    return response;
                 });
 
-            return response || fetchPromise;
+                if (response) {
+                    console.log(`[SW] Serving from cache: ${e.request.url}`);
+                } else {
+                    console.log(`[SW] Fetching from network: ${e.request.url}`);
+                }
+
+                // Return the cached response if it exists, otherwise wait for the network
+                return response || fetchPromise;
+            });
         }),
     );
 });

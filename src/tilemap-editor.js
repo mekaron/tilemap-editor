@@ -195,6 +195,14 @@
         draw();
     }
 
+    const setLayerIsLocked = (layer, override = null) => {
+        const layerNumber = Number(layer);
+        maps[ACTIVE_MAP].layers[layerNumber].locked = override ?? !maps[ACTIVE_MAP].layers[layerNumber].locked;
+        document
+            .getElementById(`lockLayerBtn-${layer}`)
+            .innerHTML = maps[ACTIVE_MAP].layers[layerNumber].locked ? "🔒" : "🔓";
+    }
+
     const trashLayer = (layer) => {
         const layerNumber = Number(layer);
         maps[ACTIVE_MAP].layers.splice(layerNumber, 1);
@@ -227,6 +235,7 @@
               <div class="layer" draggable="true" data-layer-index="${index}">
                 <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
                 <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
+                <span id="lockLayerBtn-${index}" lock-layer="${index}"></span>
                 <div id="renameLayerBtn-${index}" rename-layer="${index}" class="rename_layer">✏️</div>
                 <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "":`disabled="true"`}>🗑️</div>
               </div>
@@ -271,6 +280,10 @@
                 setLayerIsVisible(e.target.getAttribute("vis-layer"))
                 addToUndoStack();
             })
+            document.getElementById(`lockLayerBtn-${index}`).addEventListener("click",e=>{
+                setLayerIsLocked(e.target.getAttribute("lock-layer"))
+                addToUndoStack();
+            })
             document.getElementById(`renameLayerBtn-${index}`).addEventListener("click",e=>{
                 renameLayer(e.target.getAttribute("rename-layer"))
             })
@@ -279,6 +292,7 @@
                 addToUndoStack();
             })
             setLayerIsVisible(index, true);
+            setLayerIsLocked(index, maps[ACTIVE_MAP].layers[index].locked);
         })
         setLayer(currentLayer);
     }
@@ -572,12 +586,14 @@
     }
 
     const removeTile=(key) =>{
+        if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         delete maps[ACTIVE_MAP].layers[currentLayer].tiles[key];
         if (key in (maps[ACTIVE_MAP].layers[currentLayer].animatedTiles || {})) delete maps[ACTIVE_MAP].layers[currentLayer].animatedTiles[key];
     }
 
     const isFlippedOnX = () => document.getElementById("toggleFlipX").checked;
     const addSelectedTiles = (key, tiles) => {
+        if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         const [x, y] = key.split("-");
         const tilesPatch = tiles || selection; // tiles is opt override for selection for fancy things like random patch of tiles
         const {x: startX, y: startY} = tilesPatch[0];// add selection override
@@ -601,6 +617,7 @@
     const getSelectedFrameCount = () => getCurrentFrames()?.frameCount || 1;
     const shouldNotAddAnimatedTile = () => (tileDataSel.value !== "frames" && getSelectedFrameCount() !== 1) || Object.keys(tileSets[tilesetDataSel.value]?.frames).length === 0;
     const addTile = (key) => {
+        if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         if (shouldNotAddAnimatedTile()) {
             addSelectedTiles(key);
         } else {
@@ -617,6 +634,7 @@
     }
 
     const addRandomTile = (key) =>{
+        if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         // TODO add probability for empty
         if (shouldNotAddAnimatedTile()) {
             maps[ACTIVE_MAP].layers[currentLayer].tiles[key] = selection[Math.floor(Math.random()*selection.length)];
@@ -632,6 +650,7 @@
     }
 
     const fillEmptyOrSameTiles = (key) => {
+        if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
         const pickedTile = maps[ACTIVE_MAP].layers[currentLayer].tiles[key];
         Array.from({length: mapTileWidth * mapTileHeight}, (x, i) => i).map(tile=>{
             const x = tile % mapTileWidth;
@@ -701,7 +720,7 @@
     }
 
     const toggleTile=(event)=> {
-        if(ACTIVE_TOOL === TOOLS.PAN || !maps[ACTIVE_MAP].layers[currentLayer].visible) return;
+        if(ACTIVE_TOOL === TOOLS.PAN || !maps[ACTIVE_MAP].layers[currentLayer].visible || maps[ACTIVE_MAP].layers[currentLayer].locked) return;
 
         const {x,y} = getSelectedTile(event)[0];
         const key = `${x}-${y}`;
@@ -1223,8 +1242,9 @@
             WIDTH = canvas.width * ZOOM;
             HEIGHT = canvas.height * ZOOM;
             selection = [{}];
-            ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
-            maps = data ? {...data.maps} : {[ACTIVE_MAP]: getEmptyMap("Map 1", mapTileWidth, mapTileHeight)};
+            const hasMaps = data && data.maps && Object.keys(data.maps).length > 0;
+            ACTIVE_MAP = hasMaps ? Object.keys(data.maps)[0] : "Map_1";
+            maps = hasMaps ? {...data.maps} : {[ACTIVE_MAP]: getEmptyMap("Map 1", mapTileWidth, mapTileHeight)};
             tileSets = data ? {...data.tileSets} : {};
             reloadTilesets();
             tilesetDataSel.value = "0";
@@ -1261,7 +1281,11 @@
         try {
             savedState = localStorage.getItem('tilemapEditorState');
             if (savedState) {
-                appState = JSON.parse(savedState);
+                const parsedState = JSON.parse(savedState);
+                if (parsedState) {
+                    appState = parsedState.appState;
+                    tileMapData = parsedState.tileMapData;
+                }
             }
         } catch (e) {
             console.warn('Failed to load saved state', e);
@@ -1295,7 +1319,7 @@
             name: "Extract tileset from map",
             transformer: exportUniqueTiles
         }
-        apiTileMapImporters = tileMapImporters;
+        apiTileMapImporters = tileMapImporters || {};
         apiTileMapImporters.openData = {
             name: "Open Json file",
             onSelectFiles: (setData, files) => {
@@ -1339,7 +1363,7 @@
             getComponentHtml('map-canvas', {width: canvasWidth, height: canvasHeight, mapTileWidth}),
             getComponentHtml('layers')
         ]);
-        
+
         const layoutContainer = document.getElementById('layoutContainer');
         const layout = new GoldenLayout({
             root: {

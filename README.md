@@ -57,7 +57,6 @@ TileMap Editor is a fat-free tile map editor with zero dependencies and a scalab
 
 Planned:
 - Paint tool modes (line, square, circle,etc)
-- tiled i/o
 
 <p align="center">
   <img src="screenshots/demo.gif" />
@@ -92,7 +91,7 @@ The random tile brush can also use animation frames to place a random frame
 
 But Todor, why are you making another tilemap editor with all these other ones out there?
 
-While I am a big fan of Tiled and LdTk, for my case I was looking for something that neither had:
+While I am a big fan of other tools like LdTk, for my case I was looking for something that neither had:
 - Tiny footprint. Other tilemap editors are 60-100+ mb and require installation. Tilemap-editor is 30kb as of the time of writing this.
 - Can be used by other js projects/web apps/websites. It has been designed to be a module, which you can plug in your project easily.
 - No build process required, no webpack, no transpiling. Thats true, it's a single js+css file with no external dependencies!
@@ -170,27 +169,6 @@ TilemapEditor.init("tileMapEditor",{ // The id of the element that will become t
                 downloadAsTextFile(text, "KaboomJsMapData.js");// you can use this util method to get your text as a file
             }
         },
-    },
-    tileMapImporters: {
-        //similar to the exporters, you can write your own data importer, which will then be added to the file menu
-        tiledImport: {
-            name: "Import Tiled json file (TODO)", // name of menu entry
-            onSelectFiles: (setData, files) => { // callback that is triggered when file(s) are selected.
-                const readFile = new FileReader();
-                readFile.onload = (e) => {
-                    const json = JSON.parse(e.target.result);
-                    // At this point we got the json data from the tiled file. We need to convert it into
-                    // a data struct that tiled-editor can read (an object with maps and tileSets):
-                    // { maps : {...}, tileSets: {...}}
-                    alert("Not implemented yet... pr welcome ;)");
-                    return;// TODO tiled json file parser
-
-                    setData(json); // Finally pass that to the setData function, which will load it into tiled-editor
-                };
-                readFile.readAsText(files[0]);
-            },
-            acceptFile: "application/JSON" // You can control what files are accepted
-        }
     },
     // If passed, a new button gets added to the header, upon being clicked, you can get data from the tilemap editor and trigger events
     onApply: {
