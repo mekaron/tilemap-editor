@@ -1339,7 +1339,7 @@
             getComponentHtml('map-canvas', {width: canvasWidth, height: canvasHeight, mapTileWidth}),
             getComponentHtml('layers')
         ]);
-        const {GoldenLayout} = await import('../node_modules/golden-layout/dist/esm/index.js');
+        
         const layoutContainer = document.getElementById('layoutContainer');
         const layout = new GoldenLayout({
             root: {
