@@ -156,25 +156,19 @@ const TilemapEditor = {};
         document.querySelector(`.layer[tile-layer="${newLayer}"]`)?.classList.add('active');
         document.getElementById("activeLayerLabel").innerHTML = `
             Editing Layer: ${maps[ACTIVE_MAP].layers[newLayer]?.name} 
-            <div class="dropdown left">
-                <div class="item nohover">Layer: ${maps[ACTIVE_MAP].layers[newLayer]?.name} </div>
-                <div class="item">
-                    <div class="slider-wrapper">
-                      <label for="layerOpacitySlider">Opacity</label>
-                      <input type="range" min="0" max="1" value="1" id="layerOpacitySlider" step="0.01">
-                      <output for="layerOpacitySlider" id="layerOpacitySliderValue">${maps[ACTIVE_MAP].layers[newLayer]?.opacity}</output>
-                    </div>
-                </div>
-            </div>
         `;
-        document.getElementById("layerOpacitySlider").value = maps[ACTIVE_MAP].layers[newLayer]?.opacity;
-        document.getElementById("layerOpacitySlider").addEventListener("change", e =>{
-            addToUndoStack();
-            document.getElementById("layerOpacitySliderValue").innerText = e.target.value;
-            maps[ACTIVE_MAP].layers[currentLayer].opacity = Number(e.target.value);
-            draw();
-            updateLayers();
-        })
+        const layerOpacitySlider = document.getElementById("layerOpacitySlider");
+        if (layerOpacitySlider) {
+            layerOpacitySlider.value = maps[ACTIVE_MAP].layers[newLayer]?.opacity;
+            document.getElementById("layerOpacitySliderValue").innerText = layerOpacitySlider.value;
+            layerOpacitySlider.addEventListener("change", e => {
+                addToUndoStack();
+                document.getElementById("layerOpacitySliderValue").innerText = e.target.value;
+                maps[ACTIVE_MAP].layers[currentLayer].opacity = Number(e.target.value);
+                draw();
+                updateLayers();
+            });
+        }
     }
 
     const setLayerIsVisible = (layer, override = null) => {
@@ -877,12 +871,7 @@ const TilemapEditor = {};
         undoStack = [];
         undoStepPosition = -1;
     }
-    const getAppState = async (retries = 5, delay = 100) => {
-        let attempts = 0;
-        while (Object.keys(tileSets).length === 0 && attempts < retries) {
-            await new Promise((res) => setTimeout(res, delay));
-            attempts += 1;
-        }
+    const getAppState = async () => {
         if (Object.keys(tileSets).length === 0 && tileSets.constructor === Object) {
             throw new Error('Tilesets not loaded');
         }
@@ -1095,7 +1084,7 @@ const TilemapEditor = {};
             TILESET_ELEMENTS.push(tilesetImgElement);
         })
 
-        Promise.all(Array.from(TILESET_ELEMENTS).filter(img => !img.complete)
+        return Promise.all(Array.from(TILESET_ELEMENTS).filter(img => !img.complete)
             .map(img => new Promise(resolve => { img.onload = img.onerror = resolve; })))
             .then(() => {
                 // console.log("TILESET ELEMENTS", TILESET_ELEMENTS)
@@ -1169,7 +1158,7 @@ const TilemapEditor = {};
         setActiveMap(lastMap);
         document.getElementById("removeMapBtn").disabled = Object.keys(maps).length === 1;
     }
-    const loadData = (data) =>{
+    const loadData = async (data) =>{
         try {
             clearUndoStack();
             WIDTH = canvas.width * ZOOM;
@@ -1179,7 +1168,7 @@ const TilemapEditor = {};
             ACTIVE_MAP = hasMaps ? Object.keys(data.maps)[0] : "Map_1";
             maps = hasMaps ? {...data.maps} : {[ACTIVE_MAP]: getEmptyMap("Map 1", mapTileWidth, mapTileHeight)};
             tileSets = data ? {...data.tileSets} : {};
-            reloadTilesets();
+            await reloadTilesets();
             tilesetDataSel.value = "0";
             cropSize.value = data ? tileSets[tilesetDataSel.value]?.tileSize || maps[ACTIVE_MAP].tileSize : SIZE_OF_CROP;
             document.getElementById("gridCropSize").value = cropSize.value;
@@ -1295,10 +1284,11 @@ const TilemapEditor = {};
         attachTo.innerHTML = await getHtml();
         attachTo.className = "tilemap_editor_root";
 
-        const [tilesetTemplate, mapTemplate, layersTemplate] = await Promise.all([
+        const [tilesetTemplate, mapTemplate, layersTemplate, layerSettingsTemplate] = await Promise.all([
             getComponentHtml('tileset'),
             getComponentHtml('map-canvas', {width: canvasWidth, height: canvasHeight, mapTileWidth}),
-            getComponentHtml('layers')
+            getComponentHtml('layers'),
+            getComponentHtml('layer-settings')
         ]);
 
         const layoutContainer = document.getElementById('layoutContainer');
@@ -1308,7 +1298,13 @@ const TilemapEditor = {};
                 content: [
                     {type: 'component', componentName: 'Tileset'},
                     {type: 'component', componentName: 'Map'},
-                    {type: 'component', componentName: 'Layers'}
+                    {
+                        type: 'column',
+                        content: [
+                            {type: 'component', componentName: 'Layers'},
+                            {type: 'component', componentName: 'Layer Settings'}
+                        ]
+                    }
                 ]
             }
         }, layoutContainer);
@@ -1597,6 +1593,9 @@ const TilemapEditor = {};
                 updateMapSize({ mapHeight: Number(e.target.value) });
             });
         });
+        layout.registerComponent('Layer Settings', container => {
+            container.element.innerHTML = layerSettingsTemplate;
+        });
         layout.init();
 
         tilesetImage = document.createElement('img');
@@ -1818,7 +1817,7 @@ const TilemapEditor = {};
             else zoomOut();
         });
 
-        loadData(tileMapData)
+        await loadData(tileMapData)
         if (appState) {
             ACTIVE_MAP = appState.ACTIVE_MAP;
             mapsDataSel.value = ACTIVE_MAP;
