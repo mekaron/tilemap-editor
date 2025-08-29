@@ -736,7 +736,15 @@ const TilemapEditor = {};
     }
 
     const toggleTile=(event)=> {
-        if(ACTIVE_TOOL === TOOLS.PAN || !maps[ACTIVE_MAP].layers[currentLayer].visible || maps[ACTIVE_MAP].layers[currentLayer].locked) return;
+        if(ACTIVE_TOOL === TOOLS.PAN || !maps[ACTIVE_MAP].layers[currentLayer].visible || maps[ACTIVE_MAP].layers[currentLayer].locked) {
+            if (!canvas.classList.contains('red-flash')) {
+                canvas.classList.add('red-flash');
+                setTimeout(() => {
+                    canvas.classList.remove('red-flash');
+                }, 300);
+            }
+            return;
+        }
 
         const {x,y} = getSelectedTile(event)[0];
         const key = `${x}-${y}`;
