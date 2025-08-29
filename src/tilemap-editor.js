@@ -236,6 +236,10 @@ const TilemapEditor = {};
         maps[ACTIVE_MAP].layers.forEach((_,index)=>{
             const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
             const onPointerDown = (e) => {
+                if (e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
+                    return;
+                }
+
                 const draggedItem = e.currentTarget;
                 draggedItem.classList.add('dragging');
 
