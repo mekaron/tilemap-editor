@@ -137,7 +137,6 @@
   position: absolute;
   right: 0;
   background: #ffffffb0;
-  height: 50vh;
   border-radius: 3px;
   user-select: none;
   padding-right: 0;
@@ -274,7 +273,7 @@ cursor: pointer;
 
 .layers {
   height: 100%;
-  width: 200px;
+  width: 100%;
   overflow: auto;
   display: flex;
   flex-direction: column;
