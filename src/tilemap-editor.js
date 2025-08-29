@@ -235,33 +235,57 @@ const TilemapEditor = {};
 
         maps[ACTIVE_MAP].layers.forEach((_,index)=>{
             const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
-            layerEl.addEventListener("dragstart", e => {
-                e.dataTransfer.setData("text/plain", String(index));
-            });
-            layerEl.addEventListener("dragover", e => {
-                e.preventDefault();
-                layerEl.classList.add("drop-target");
-            });
-            layerEl.addEventListener("dragleave", () => {
-                layerEl.classList.remove("drop-target");
-            });
-            layerEl.addEventListener("drop", e => {
-                e.preventDefault();
-                layerEl.classList.remove("drop-target");
-                const fromIndex = Number(e.dataTransfer.getData("text/plain"));
-                const toIndex = index;
-                if(fromIndex !== toIndex){
-                    const layers = maps[ACTIVE_MAP].layers;
-                    [layers[fromIndex], layers[toIndex]] = [layers[toIndex], layers[fromIndex]];
-                    if(currentLayer === fromIndex){
-                        currentLayer = toIndex;
-                    } else if(currentLayer === toIndex){
-                        currentLayer = fromIndex;
+            const onPointerDown = (e) => {
+                const draggedItem = e.currentTarget;
+                draggedItem.classList.add('dragging');
+
+                const onPointerMove = (e) => {
+                    e.preventDefault(); // Prevent scrolling while dragging
+
+                    const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+                    const targetLayer = targetElement ? targetElement.closest('.layer') : null;
+
+                    document.querySelectorAll('.layer').forEach(layer => {
+                        if (layer !== targetLayer) {
+                            layer.classList.remove('drop-target');
+                        }
+                    });
+
+                    if (targetLayer && targetLayer !== draggedItem) {
+                        targetLayer.classList.add('drop-target');
                     }
-                    updateLayers();
-                    addToUndoStack();
-                }
-            });
+                };
+
+                const onPointerUp = () => {
+                    document.removeEventListener('pointermove', onPointerMove);
+                    document.removeEventListener('pointerup', onPointerUp);
+
+                    draggedItem.classList.remove('dragging');
+                    const fromIndex = Number(draggedItem.dataset.layerIndex);
+                    const targetElement = document.querySelector('.layer.drop-target');
+
+                    if (targetElement) {
+                        targetElement.classList.remove('drop-target');
+                        const toIndex = Number(targetElement.dataset.layerIndex);
+                        if (fromIndex !== toIndex) {
+                            const layers = maps[ACTIVE_MAP].layers;
+                            [layers[fromIndex], layers[toIndex]] = [layers[toIndex], layers[fromIndex]];
+                            if (currentLayer === fromIndex) {
+                                currentLayer = toIndex;
+                            } else if (currentLayer === toIndex) {
+                                currentLayer = fromIndex;
+                            }
+                            updateLayers();
+                            addToUndoStack();
+                        }
+                    }
+                };
+
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+            };
+
+            layerEl.addEventListener('pointerdown', onPointerDown);
 
             document.getElementById(`selectLayerBtn-${index}`).addEventListener("click",e=>{
                 setLayer(e.target.getAttribute("tile-layer"));

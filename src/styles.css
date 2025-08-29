@@ -523,3 +523,7 @@ a:active {
 .two-digit-width{
   max-width: 38px !important;
 }
+
+.layer.dragging {
+    opacity: 0.5;
+}
