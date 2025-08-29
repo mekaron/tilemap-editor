@@ -915,13 +915,19 @@ const TilemapEditor = {};
             mapTileWidth = size?.mapWidth;
             WIDTH = mapTileWidth * SIZE_OF_CROP * ZOOM;
             maps[ACTIVE_MAP].mapWidth = mapTileWidth;
-            document.getElementById("canvasWidthInp").value  = String(mapTileWidth);
+            const widthInput = document.getElementById("canvasWidthInp");
+            if (widthInput) {
+                widthInput.value = String(mapTileWidth);
+            }
         }
         if(size?.mapHeight && size?.mapHeight > 1){
             mapTileHeight = size?.mapHeight;
             HEIGHT = mapTileHeight * SIZE_OF_CROP * ZOOM;
             maps[ACTIVE_MAP].mapHeight = mapTileHeight;
-            document.getElementById("canvasHeightInp").value  = String(mapTileHeight);
+            const heightInput = document.getElementById("canvasHeightInp");
+            if (heightInput) {
+                heightInput.value = String(mapTileHeight);
+            }
         }
         draw();
     }
