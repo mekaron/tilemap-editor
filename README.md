@@ -121,6 +121,9 @@ To use it, you can import it via require or in the index file like so
 <script src="tilemap-editor.js"></script>
 
 <script>
+fetch("ioJsonData.json")
+  .then(res => res.json())
+  .then(ioJsonData => {
 TilemapEditor.init("tileMapEditor",{ // The id of the element that will become the tilemap-editor (must exist in your dom)
     // loads tilemap data which was saved before. undefined will start you with an empty map.
     // Takes a parsed json object with a data struct that tiled-editor can read (an object with maps and tileSets):
@@ -187,6 +190,7 @@ TilemapEditor.init("tileMapEditor",{ // The id of the element that will become t
     }
 })
 console.log("Got App State:",TilemapEditor.getState())
+});
 </script>
    ```
    

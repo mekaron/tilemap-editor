@@ -1,5 +1,6 @@
 // @ts-check
 import { GoldenLayout } from 'https://cdn.jsdelivr.net/npm/@antosubash/golden-layout@2.6.0/dist/bundle/esm/golden-layout.js';
+const DEBUG = new URLSearchParams(window.location.search).has('debug');
 const TilemapEditor = {};
     // Call once on element to add behavior, toggle on/off isDraggable attr to enable
     const draggable = ({element, onElement = null, isDrag = false, onDrag = null,
@@ -17,7 +18,7 @@ const TilemapEditor = {};
             // element.style.position = "relative"
             if(!limitX) element.style.left = elementX + deltaX + 'px';
             if(!limitY) element.style.top = elementY + deltaY + 'px';
-            console.log("DRAGGING", {deltaX, deltaY, x: elementX + deltaX, y:elementY + deltaY})
+            if (DEBUG) console.log("DRAGGING", {deltaX, deltaY, x: elementX + deltaX, y:elementY + deltaY})
             if(onDrag) onDrag({deltaX, deltaY, x: elementX + deltaX, y:elementY + deltaY, mouseX, mouseY});
         }
         const onMouseDown = (event) => {
@@ -25,11 +26,11 @@ const TilemapEditor = {};
 
             mouseX = event.clientX;
             mouseY = event.clientY;
-            console.log("MOUSEX", mouseX)
+            if (DEBUG) console.log("MOUSEX", mouseX)
             isMouseDown = true;
         }
         const onMouseUp = () => {
-            if(!element.getAttribute("isDraggable") === "false") return;
+            if (element.getAttribute("isDraggable") === "false") return;
             isMouseDown = false;
             elementX = parseInt(element.style.left) || 0;
             elementY = parseInt(element.style.top) || 0;
@@ -353,7 +354,7 @@ const TilemapEditor = {};
         const selWidth = endX - x + 1;
         const selHeight = endY - y + 1;
         selectionSize = [selWidth, selHeight]
-        console.log(tileSets[tilesetDataSel.value].tileSize)
+        if (DEBUG) console.log(tileSets[tilesetDataSel.value].tileSize)
         const tileSize = tileSets[tilesetDataSel.value].tileSize;
         tilesetSelection.style.left = `${x * tileSize * ZOOM}px`;
         tilesetSelection.style.top = `${y * tileSize * ZOOM}px`;
@@ -565,9 +566,7 @@ const TilemapEditor = {};
 
     const addRandomTile = (key) =>{
         if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
-        // TODO add probability for empty
         maps[ACTIVE_MAP].layers[currentLayer].tiles[key] = selection[Math.floor(Math.random()*selection.length)];
-
     }
 
     const fillEmptyOrSameTiles = (key) => {
@@ -802,7 +801,7 @@ const TilemapEditor = {};
 
     const getFlattenedData = () => {
         const result = Object.entries(maps).map(([key, map])=>{
-            console.log({map})
+            if (DEBUG) console.log({map})
             const layers = map.layers;
             const flattenedData = Array(layers.length).fill([]).map(()=>{
                 return Array(map.mapHeight).fill([]).map(row=>{
@@ -826,7 +825,7 @@ const TilemapEditor = {};
     };
     const getExportData = () => {
         const exportData = {maps, tileSets, flattenedData: getFlattenedData(), activeMap: ACTIVE_MAP, downloadAsTextFile};
-        console.log("Exported ", exportData);
+        if (DEBUG) console.log("Exported ", exportData);
         return exportData;
     }
 
@@ -867,9 +866,15 @@ const TilemapEditor = {};
         undoStack = [];
         undoStepPosition = -1;
     }
-    const getAppState = () => {
-        // TODO we need for tilesets to load - rapidly refreshing the browser may return empty tilesets object!
-        if(Object.keys(tileSets).length === 0 && tileSets.constructor === Object) return null;
+    const getAppState = async (retries = 5, delay = 100) => {
+        let attempts = 0;
+        while (Object.keys(tileSets).length === 0 && attempts < retries) {
+            await new Promise((res) => setTimeout(res, delay));
+            attempts += 1;
+        }
+        if (Object.keys(tileSets).length === 0 && tileSets.constructor === Object) {
+            throw new Error('Tilesets not loaded');
+        }
         return {
             tileMapData: {tileSets, maps},
             appState: {
@@ -886,8 +891,12 @@ const TilemapEditor = {};
             // undo stack is lost
         };
     }
-    const onUpdateState = () => {
-        apiOnUpdateCallback(getAppState())
+    const onUpdateState = async () => {
+        try {
+            await apiOnUpdateCallback(await getAppState());
+        } catch (e) {
+            apiOnUpdateCallback({ error: e.message });
+        }
     }
     const addToUndoStack = () => {
         if(Object.keys(tileSets).length === 0 || Object.keys(maps).length === 0) return;
@@ -1001,7 +1010,7 @@ const TilemapEditor = {};
         el.animStart().max = el.tileFrameCount().value;
         el.animEnd().max = el.tileFrameCount().value;
         if(currentAnim){
-            console.log({currentAnim})
+            if (DEBUG) console.log({currentAnim})
             el.animStart().value = currentAnim.start || 1
             el.animEnd().value = currentAnim.end || 1
             el.animLoop().checked = currentAnim.loop || false
@@ -1245,16 +1254,20 @@ const TilemapEditor = {};
             },
             acceptFile: "application/JSON"
         }
-        apiOnUpdateCallback = (...args) => {
+        apiOnUpdateCallback = async (...args) => {
             onUpdate(...args);
-            saveStateToLocalStorage();
+            await saveStateToLocalStorage();
         };
         TilemapEditor.onUpdate = apiOnUpdateCallback;
 
         if(onMouseUp){
             apiOnMouseUp = onMouseUp;
-            document.getElementById('tileMapEditor').addEventListener('pointerup', function(){
-                apiOnMouseUp(getAppState(), apiTileMapExporters)
+            document.getElementById('tileMapEditor').addEventListener('pointerup', async function(){
+                try {
+                    apiOnMouseUp(await getAppState(), apiTileMapExporters)
+                } catch (e) {
+                    apiOnMouseUp({ error: e.message }, apiTileMapExporters)
+                }
             })
         }
 
@@ -1288,6 +1301,7 @@ const TilemapEditor = {};
                 ]
             }
         }, layoutContainer);
+        window.addEventListener('resize', () => layout.updateSize());
         layout.registerComponent('Tileset', container => {
             container.element.innerHTML = tilesetTemplate;
             const compEl = container.getElement();
@@ -1431,7 +1445,7 @@ const TilemapEditor = {};
                 updateTilesetGridContainer();
             });
             tileAnimSel.addEventListener('change', e =>{
-                console.log("anim select", e, tileAnimSel.value);
+                if (DEBUG) console.log("anim select", e, tileAnimSel.value);
                 el.animStart().value = getCurrentAnimation()?.start || 1;
                 el.animEnd().value = getCurrentAnimation()?.end || 1;
                 el.animLoop().checked = getCurrentAnimation()?.loop || false;
@@ -1622,7 +1636,7 @@ const TilemapEditor = {};
             reloadTilesets();
         }
         const addNewTileSet = (src) => {
-            console.log("add new tileset"+ src)
+            if (DEBUG) console.log("add new tileset"+ src)
             addToUndoStack();
             IMAGES.push({src});
             reloadTilesets();
@@ -1695,7 +1709,7 @@ const TilemapEditor = {};
         });
 
         document.getElementById("toolButtonsWrapper").addEventListener("click",e=>{
-            console.log("ACTIVE_TOOL", e.target.value)
+            if (DEBUG) console.log("ACTIVE_TOOL", e.target.value)
             if(e.target.getAttribute("name") === "tool") setActiveTool(Number(e.target.value));
         })
         document.getElementById("gridCropSize").addEventListener('change', e=>{
@@ -1773,7 +1787,7 @@ const TilemapEditor = {};
             }
         })
         document.getElementById("gridColorSel").addEventListener("change", e=>{
-            console.log("grid col",e.target.value)
+            if (DEBUG) console.log("grid col",e.target.value)
             maps[ACTIVE_MAP].gridColor = e.target.value;
             draw();
         })
@@ -1812,9 +1826,10 @@ const TilemapEditor = {};
     TilemapEditor.getState = () => {
         return getAppState();
     }
-    const saveStateToLocalStorage = () => {
+    const saveStateToLocalStorage = async () => {
         try {
-            localStorage.setItem('tilemapEditorState', JSON.stringify(getAppState()));
+            const state = await getAppState();
+            localStorage.setItem('tilemapEditorState', JSON.stringify(state));
         } catch (e) {
             console.warn('Failed to save state', e);
         }
