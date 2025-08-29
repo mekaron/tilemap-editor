@@ -71,14 +71,18 @@
     exports.toBase64 = toBase64;
 
     const decoupleReferenceFromObj = (obj) => JSON.parse(JSON.stringify(obj));
-    const getHtml = async (width, height) => {
+    const getHtml = async () => {
         const response = await fetch('src/index.html');
+        return await response.text();
+    };
+    const getComponentHtml = async (name, replacements = {}) => {
+        const response = await fetch(`src/components/${name}.html`);
         let template = await response.text();
-        return template
-            .replace(/{{width}}/g, width)
-            .replace(/{{height}}/g, height)
-            .replace(/{{mapTileWidth}}/g, mapTileWidth);
-    }
+        Object.entries(replacements).forEach(([key, value]) => {
+            template = template.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        });
+        return template;
+    };
     const getEmptyLayer = (name="layer")=> ({tiles:{}, visible: true, name, animatedTiles: {}, opacity: 1});
     let tilesetImage, canvas, tilesetContainer, tilesetSelection, cropSize,
         confirmBtn, tilesetGridContainer,
@@ -1327,30 +1331,34 @@
 
         if (SIZE_OF_CROP < 12) ZOOM = 2;// Automatically start with zoom 2 when the tilesize is tiny
         // Attach elements
-        attachTo.innerHTML = '<div id="layoutRoot"></div>';
+        attachTo.innerHTML = await getHtml();
         attachTo.className = "tilemap_editor_root";
 
-        const config = {
+        const [tilesetTemplate, mapTemplate, layersTemplate] = await Promise.all([
+            getComponentHtml('tileset'),
+            getComponentHtml('map-canvas', {width: canvasWidth, height: canvasHeight, mapTileWidth}),
+            getComponentHtml('layers')
+        ]);
+        const {GoldenLayout} = await import('../node_modules/golden-layout/dist/esm/index.js');
+        const layoutContainer = document.getElementById('layoutContainer');
+        const layout = new GoldenLayout({
             root: {
                 type: 'row',
                 content: [
-                    { type: 'component', componentName: 'Tileset', title: 'Tileset' },
-                    { type: 'component', componentName: 'Map', title: 'Map' },
-                    { type: 'component', componentName: 'Layers', title: 'Layers' }
+                    {type: 'component', componentName: 'Tileset'},
+                    {type: 'component', componentName: 'Map'},
+                    {type: 'component', componentName: 'Layers'}
                 ]
             }
-        };
-
-        const layout = new GoldenLayout(config, document.getElementById('layoutRoot'));
-
+        }, layoutContainer);
         layout.registerComponent('Tileset', container => {
-            container.getElement().html('<div class="tileset-container"><div class="tileset-container-selection"></div><div id="tilesetGridContainer"></div><input id="cropSize" type="hidden" /><button id="confirmBtn"></button></div>');
+            container.element.innerHTML = tilesetTemplate;
         });
         layout.registerComponent('Map', container => {
-            container.getElement().html(`<canvas id="mapCanvas" width="${canvasWidth}" height="${canvasHeight}"></canvas>`);
+            container.element.innerHTML = mapTemplate;
         });
         layout.registerComponent('Layers', container => {
-            container.getElement().html('<div id="layers"></div>');
+            container.element.innerHTML = layersTemplate;
         });
         layout.init();
 
