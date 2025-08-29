@@ -1368,6 +1368,7 @@ const TilemapEditor = {};
                 ]
             }
         }, layoutContainer);
+        window.addEventListener('resize', () => layout.updateSize());
         layout.registerComponent('Tileset', container => {
             container.element.innerHTML = tilesetTemplate;
             const compEl = container.getElement();
