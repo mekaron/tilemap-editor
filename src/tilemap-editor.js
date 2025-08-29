@@ -1327,8 +1327,33 @@
 
         if (SIZE_OF_CROP < 12) ZOOM = 2;// Automatically start with zoom 2 when the tilesize is tiny
         // Attach elements
-        attachTo.innerHTML = await getHtml(canvasWidth, canvasHeight);
+        attachTo.innerHTML = '<div id="layoutRoot"></div>';
         attachTo.className = "tilemap_editor_root";
+
+        const config = {
+            root: {
+                type: 'row',
+                content: [
+                    { type: 'component', componentName: 'Tileset', title: 'Tileset' },
+                    { type: 'component', componentName: 'Map', title: 'Map' },
+                    { type: 'component', componentName: 'Layers', title: 'Layers' }
+                ]
+            }
+        };
+
+        const layout = new GoldenLayout(config, document.getElementById('layoutRoot'));
+
+        layout.registerComponent('Tileset', container => {
+            container.getElement().html('<div class="tileset-container"><div class="tileset-container-selection"></div><div id="tilesetGridContainer"></div><input id="cropSize" type="hidden" /><button id="confirmBtn"></button></div>');
+        });
+        layout.registerComponent('Map', container => {
+            container.getElement().html(`<canvas id="mapCanvas" width="${canvasWidth}" height="${canvasHeight}"></canvas>`);
+        });
+        layout.registerComponent('Layers', container => {
+            container.getElement().html('<div id="layers"></div>');
+        });
+        layout.init();
+
         tilesetImage = document.createElement('img');
         cropSize = document.getElementById('cropSize');
 
