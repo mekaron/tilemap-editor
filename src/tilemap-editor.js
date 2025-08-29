@@ -1238,8 +1238,9 @@
             WIDTH = canvas.width * ZOOM;
             HEIGHT = canvas.height * ZOOM;
             selection = [{}];
-            ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
-            maps = data ? {...data.maps} : {[ACTIVE_MAP]: getEmptyMap("Map 1", mapTileWidth, mapTileHeight)};
+            const hasMaps = data && data.maps && Object.keys(data.maps).length > 0;
+            ACTIVE_MAP = hasMaps ? Object.keys(data.maps)[0] : "Map_1";
+            maps = hasMaps ? {...data.maps} : {[ACTIVE_MAP]: getEmptyMap("Map 1", mapTileWidth, mapTileHeight)};
             tileSets = data ? {...data.tileSets} : {};
             reloadTilesets();
             tilesetDataSel.value = "0";
@@ -1276,7 +1277,11 @@
         try {
             savedState = localStorage.getItem('tilemapEditorState');
             if (savedState) {
-                appState = JSON.parse(savedState);
+                const parsedState = JSON.parse(savedState);
+                if (parsedState) {
+                    appState = parsedState.appState;
+                    tileMapData = parsedState.tileMapData;
+                }
             }
         } catch (e) {
             console.warn('Failed to load saved state', e);
@@ -1310,7 +1315,7 @@
             name: "Extract tileset from map",
             transformer: exportUniqueTiles
         }
-        apiTileMapImporters = tileMapImporters;
+        apiTileMapImporters = tileMapImporters || {};
         apiTileMapImporters.openData = {
             name: "Open Json file",
             onSelectFiles: (setData, files) => {
