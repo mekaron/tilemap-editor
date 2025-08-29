@@ -947,9 +947,15 @@ const TilemapEditor = {};
         undoStack = [];
         undoStepPosition = -1;
     }
-    const getAppState = () => {
-        // TODO we need for tilesets to load - rapidly refreshing the browser may return empty tilesets object!
-        if(Object.keys(tileSets).length === 0 && tileSets.constructor === Object) return null;
+    const getAppState = async (retries = 5, delay = 100) => {
+        let attempts = 0;
+        while (Object.keys(tileSets).length === 0 && attempts < retries) {
+            await new Promise((res) => setTimeout(res, delay));
+            attempts += 1;
+        }
+        if (Object.keys(tileSets).length === 0 && tileSets.constructor === Object) {
+            throw new Error('Tilesets not loaded');
+        }
         return {
             tileMapData: {tileSets, maps},
             appState: {
@@ -966,8 +972,12 @@ const TilemapEditor = {};
             // undo stack is lost
         };
     }
-    const onUpdateState = () => {
-        apiOnUpdateCallback(getAppState())
+    const onUpdateState = async () => {
+        try {
+            await apiOnUpdateCallback(await getAppState());
+        } catch (e) {
+            apiOnUpdateCallback({ error: e.message });
+        }
     }
     const addToUndoStack = () => {
         if(Object.keys(tileSets).length === 0 || Object.keys(maps).length === 0) return;
@@ -1325,16 +1335,20 @@ const TilemapEditor = {};
             },
             acceptFile: "application/JSON"
         }
-        apiOnUpdateCallback = (...args) => {
+        apiOnUpdateCallback = async (...args) => {
             onUpdate(...args);
-            saveStateToLocalStorage();
+            await saveStateToLocalStorage();
         };
         TilemapEditor.onUpdate = apiOnUpdateCallback;
 
         if(onMouseUp){
             apiOnMouseUp = onMouseUp;
-            document.getElementById('tileMapEditor').addEventListener('pointerup', function(){
-                apiOnMouseUp(getAppState(), apiTileMapExporters)
+            document.getElementById('tileMapEditor').addEventListener('pointerup', async function(){
+                try {
+                    apiOnMouseUp(await getAppState(), apiTileMapExporters)
+                } catch (e) {
+                    apiOnMouseUp({ error: e.message }, apiTileMapExporters)
+                }
             })
         }
 
@@ -1899,9 +1913,10 @@ const TilemapEditor = {};
     TilemapEditor.getState = () => {
         return getAppState();
     }
-    const saveStateToLocalStorage = () => {
+    const saveStateToLocalStorage = async () => {
         try {
-            localStorage.setItem('tilemapEditorState', JSON.stringify(getAppState()));
+            const state = await getAppState();
+            localStorage.setItem('tilemapEditorState', JSON.stringify(state));
         } catch (e) {
             console.warn('Failed to save state', e);
         }
