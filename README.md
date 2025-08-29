@@ -77,15 +77,10 @@ You can flip tiles
   <img src="screenshots/flipTileOnX.gif" />
 </p>
 
-It can even do animated tiles
- <p align="center">
-  <img src="screenshots/animatedTiles.gif" />
-</p>
-
-The random tile brush can also use animation frames to place a random frame 
+The random tile brush can place a random tile from the selection
  <p align="center">
   <img src="screenshots/randomTileFrame.gif" />
-</p>
+ </p>
 
 ## :cyclone: Reason
 
