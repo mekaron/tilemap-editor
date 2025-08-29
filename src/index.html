@@ -1,33 +1,33 @@
 <div id="tilemapjs_root" class="card tilemapjs_root">
   <a id="downloadAnchorElem" style="display:none"></a>
-  <div class="tileset_opt_field header">
-    <div class="menu file">
-      <span> File </span>
-      <div class="dropdown" id="fileMenuDropDown">
-        <a class="button item button-as-link" href="#popup2">About</a>
-        <div id="popup2" class="overlay">
-          <div class="popup">
-            <h4>Tilemap editor</h4>
-            <a class="close" href="#">&times;</a>
-            <div class="content">
-              <div>Created by Todor Imreorov (blurymind@gmail.com)</div>
-              <br/>
-              <div><a class="button-as-link" href="https://github.com/blurymind/tilemap-editor">Project page (Github)</a></div>
-              <div><a class="button-as-link" href="https://ko-fi.com/blurymind">Donate page (ko-fi)</a></div>
-              <br/>
-              <div>Instructions:</div>
-              <div>right click on map - picks tile</div>
-              <div>mid-click - erases tile</div>
-              <div>left-click adds tile</div>
-              <div>right-click on tileset - lets you change tile symbol or metadata</div>
-              <div>left-click - selects tile </div>
+  <div class="nav_wrapper">
+    <div class="tileset_opt_field header">
+      <div class="menu file">
+        <span> File </span>
+        <div class="dropdown" id="fileMenuDropDown">
+          <a class="button item button-as-link" href="#popup2">About</a>
+          <div id="popup2" class="overlay">
+            <div class="popup">
+              <h4>Tilemap editor</h4>
+              <a class="close" href="#">&times;</a>
+              <div class="content">
+                <div>Created by Todor Imreorov (blurymind@gmail.com)</div>
+                <br/>
+                <div><a class="button-as-link" href="https://github.com/blurymind/tilemap-editor">Project page (Github)</a></div>
+                <div><a class="button-as-link" href="https://ko-fi.com/blurymind">Donate page (ko-fi)</a></div>
+                <br/>
+                <div>Instructions:</div>
+                <div>right click on map - picks tile</div>
+                <div>mid-click - erases tile</div>
+                <div>left-click adds tile</div>
+                <div>right-click on tileset - lets you change tile symbol or metadata</div>
+                <div>left-click - selects tile </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div>
     <div id="toolButtonsWrapper" class="tool_wrapper">
       <input id="tool0" type="radio" value="0" name="tool" checked class="hidden"/>
       <label for="tool0" title="paint tiles" data-value="0" class="menu">
@@ -52,16 +52,16 @@
       <input id="tool5" type="radio" value="5" name="tool" class="hidden"/>
       <label for="tool5" title="fill on layer" data-value="5">🌈</label>
     </div>
-  </div>
-  <div class="tool_wrapper">
-    <label id="undoBtn" title="Undo">↩️️</label>
-    <label id="redoBtn" title="Redo">🔁️</label>
-    <label id="zoomIn" title="Zoom in">🔎️+</label>
-    <label id="zoomOut" title="Zoom out">🔎️-</label>
-    <label id="zoomLabel">️</label>
-  </div>
-  <div>
-    <button class="primary-button" id="confirmBtn">"apply"</button>
+    <div class="tool_wrapper">
+      <label id="undoBtn" title="Undo">↩️️</label>
+      <label id="redoBtn" title="Redo">🔁️</label>
+      <label id="zoomIn" title="Zoom in">🔎️+</label>
+      <label id="zoomOut" title="Zoom out">🔎️-</label>
+      <label id="zoomLabel">️</label>
+    </div>
+    <div>
+      <button class="primary-button" id="confirmBtn">"apply"</button>
+    </div>
   </div>
   <div id="layoutContainer" class="card_body"></div>
 </div>
