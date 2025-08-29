@@ -1064,6 +1064,43 @@ const TilemapEditor = {};
         draw();
     }
 
+    const onTilesetImageLoad = () => {
+        draw();
+        updateLayers();
+        if (selection.length === 0) selection = [getTileData(0, 0)];
+        updateSelection(false);
+        updateTilesetDataList();
+        updateTilesetDataList(true);
+        updateTilesetGridContainer();
+        document.getElementById("tilesetSrcLabel").innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
+        document.getElementById("tilesetSrcLabel").title = tilesetImage.src;
+        const tilesetExtraInfo = IMAGES.find(ts=>ts.src === tilesetImage.src);
+
+        // console.log("CHANGED TILESET", tilesetExtraInfo, IMAGES)
+
+        if(tilesetExtraInfo) {
+            if (tilesetExtraInfo.link) {
+                document.getElementById("tilesetHomeLink").innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
+                document.getElementById("tilesetHomeLink").title = tilesetExtraInfo.link;
+            } else {
+                document.getElementById("tilesetHomeLink").innerHTML = "";
+            }
+            if (tilesetExtraInfo.description) {
+                document.getElementById("tilesetDescriptionLabel").innerText = tilesetExtraInfo.description;
+                document.getElementById("tilesetDescriptionLabel").title = tilesetExtraInfo.description;
+            } else {
+                document.getElementById("tilesetDescriptionLabel").innerText = "";
+            }
+            if (tilesetExtraInfo.tileSize ) {
+                setCropSize(tilesetExtraInfo.tileSize);
+            }
+        }
+        setCropSize(tileSets[tilesetDataSel.value].tileSize);
+        updateZoom();
+
+        if (undoStepPosition === -1) addToUndoStack();//initial undo stack entry
+    };
+
     // Note: only call this when tileset images have changed
     const reloadTilesets = () =>{
         TILESET_ELEMENTS = [];
@@ -1106,42 +1143,7 @@ const TilemapEditor = {};
                 updateTilesetGridContainer();
             });
         // finally current tileset loaded
-        tilesetImage.addEventListener('load', () => {
-            draw();
-            updateLayers();
-            if (selection.length === 0) selection = [getTileData(0, 0)];
-            updateSelection(false);
-            updateTilesetDataList();
-            updateTilesetDataList(true);
-            updateTilesetGridContainer();
-            document.getElementById("tilesetSrcLabel").innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
-            document.getElementById("tilesetSrcLabel").title = tilesetImage.src;
-            const tilesetExtraInfo = IMAGES.find(ts=>ts.src === tilesetImage.src);
-
-            // console.log("CHANGED TILESET", tilesetExtraInfo, IMAGES)
-
-            if(tilesetExtraInfo) {
-                if (tilesetExtraInfo.link) {
-                    document.getElementById("tilesetHomeLink").innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
-                    document.getElementById("tilesetHomeLink").title = tilesetExtraInfo.link;
-                } else {
-                    document.getElementById("tilesetHomeLink").innerHTML = "";
-                }
-                if (tilesetExtraInfo.description) {
-                    document.getElementById("tilesetDescriptionLabel").innerText = tilesetExtraInfo.description;
-                    document.getElementById("tilesetDescriptionLabel").title = tilesetExtraInfo.description;
-                } else {
-                    document.getElementById("tilesetDescriptionLabel").innerText = "";
-                }
-                if (tilesetExtraInfo.tileSize ) {
-                    setCropSize(tilesetExtraInfo.tileSize);
-                }
-            }
-            setCropSize(tileSets[tilesetDataSel.value].tileSize);
-            updateZoom();
-
-            if (undoStepPosition === -1) addToUndoStack();//initial undo stack entry
-        });
+        tilesetImage.addEventListener('load', onTilesetImageLoad);
     }
 
     const updateMaps = ()=>{
@@ -1505,6 +1507,7 @@ const TilemapEditor = {};
                 tilesetImage.src = TILESET_ELEMENTS[e.target.value].src;
                 tilesetImage.crossOrigin = "Anonymous";
                 updateTilesetDataList();
+                updateTilesetGridContainer();
             });
             el.tileFrameCount().addEventListener('change',()=>{
                 el.animStart().max = el.tileFrameCount().value;
