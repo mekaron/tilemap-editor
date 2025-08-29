@@ -291,22 +291,27 @@ const TilemapEditor = {};
 
             layerEl.addEventListener('pointerdown', onPointerDown);
 
-            document.getElementById(`selectLayerBtn-${index}`).addEventListener("click",e=>{
+            document.getElementById(`selectLayerBtn-${index}`).addEventListener("pointerup",e=>{
+                e.stopPropagation();
                 setLayer(e.target.getAttribute("tile-layer"));
                 addToUndoStack();
             })
-            document.getElementById(`setLayerVisBtn-${index}`).addEventListener("click",e=>{
+            document.getElementById(`setLayerVisBtn-${index}`).addEventListener("pointerup",e=>{
+                e.stopPropagation();
                 setLayerIsVisible(e.target.getAttribute("vis-layer"))
                 addToUndoStack();
             })
-            document.getElementById(`lockLayerBtn-${index}`).addEventListener("click",e=>{
+            document.getElementById(`lockLayerBtn-${index}`).addEventListener("pointerup",e=>{
+                e.stopPropagation();
                 setLayerIsLocked(e.target.getAttribute("lock-layer"))
                 addToUndoStack();
             })
-            document.getElementById(`renameLayerBtn-${index}`).addEventListener("click",e=>{
+            document.getElementById(`renameLayerBtn-${index}`).addEventListener("pointerup",e=>{
+                e.stopPropagation();
                 renameLayer(e.target.getAttribute("rename-layer"))
             })
-            document.getElementById(`trashLayerBtn-${index}`).addEventListener("click",e=>{
+            document.getElementById(`trashLayerBtn-${index}`).addEventListener("pointerup",e=>{
+                e.stopPropagation();
                 trashLayer(e.target.getAttribute("trash-layer"))
                 addToUndoStack();
             })
