@@ -223,24 +223,26 @@ const TilemapEditor = {};
     const updateLayers = () => {
         layersElement.innerHTML = maps[ACTIVE_MAP].layers.map((layer, index)=>{
             return `
-              <div class="layer" draggable="true" data-layer-index="${index}">
-                <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
-                <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
-                <span id="lockLayerBtn-${index}" lock-layer="${index}"></span>
-                <div id="renameLayerBtn-${index}" rename-layer="${index}" class="rename_layer">✏️</div>
-                <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "":`disabled="true"`}>🗑️</div>
+              <div class="layer" data-layer-index="${index}">
+                <div class="layer-handle" handle-layer="${index}" draggable="false">☰</div>
+                <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}" draggable="false">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
+                <span id="setLayerVisBtn-${index}" vis-layer="${index}" draggable="false"></span>
+                <span id="lockLayerBtn-${index}" lock-layer="${index}" draggable="false"></span>
+                <div id="renameLayerBtn-${index}" rename-layer="${index}" class="rename_layer" draggable="false">✏️</div>
+                <div id="trashLayerBtn-${index}" trash-layer="${index}" ${maps[ACTIVE_MAP].layers.length > 1 ? "" : `disabled="true"`} draggable="false">🗑️</div>
               </div>
             `
         }).reverse().join("\n")
 
         maps[ACTIVE_MAP].layers.forEach((_,index)=>{
             const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
+            const handleEl = layerEl.querySelector('.layer-handle');
             const onPointerDown = (e) => {
                 if (e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
                     return;
                 }
 
-                const draggedItem = e.currentTarget;
+                const draggedItem = layerEl;
                 draggedItem.classList.add('dragging');
 
                 const onPointerMove = (e) => {
@@ -289,7 +291,7 @@ const TilemapEditor = {};
                 document.addEventListener('pointerup', onPointerUp);
             };
 
-            layerEl.addEventListener('pointerdown', onPointerDown);
+            handleEl.addEventListener('pointerdown', onPointerDown);
 
             document.getElementById(`selectLayerBtn-${index}`).addEventListener("pointerup",e=>{
                 e.stopPropagation();
