@@ -175,11 +175,11 @@ const TilemapEditor = {};
         }
         const renameLayerBtn = document.querySelector(".rename-layer");
         if(renameLayerBtn) {
-            renameLayerBtn.onclick = () => renameLayer(currentLayer);
+            renameLayerBtn.addEventListener('pointerup', () => renameLayer(currentLayer));
         }
         const deleteLayerBtn = document.querySelector(".delete-layer");
         if(deleteLayerBtn) {
-            deleteLayerBtn.onclick = () => trashLayer(currentLayer);
+            deleteLayerBtn.addEventListener('pointerup', () => trashLayer(currentLayer));
         }
     }
 
@@ -230,10 +230,10 @@ const TilemapEditor = {};
         layersElement.innerHTML = maps[ACTIVE_MAP].layers.map((layer, index)=>{
             return `
               <div class="layer" data-layer-index="${index}">
-                <div class="layer-handle" handle-layer="${index}" draggable="false">☰</div>
-                <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}" draggable="false">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
-                <span id="setLayerVisBtn-${index}" vis-layer="${index}" draggable="false"></span>
-                <span id="lockLayerBtn-${index}" lock-layer="${index}" draggable="false"></span>
+                <div class="layer-handle" handle-layer="${index}">☰</div>
+                <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
+                <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
+                <span id="lockLayerBtn-${index}" lock-layer="${index}"></span>
               </div>
             `
         }).reverse().join("\n")
@@ -242,7 +242,7 @@ const TilemapEditor = {};
             const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
             const handleEl = layerEl.querySelector('.layer-handle');
             const onPointerDown = (e) => {
-                if (e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
+                if (e.pointerType === 'touch' || e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
                     return;
                 }
 
@@ -297,17 +297,17 @@ const TilemapEditor = {};
 
             handleEl.addEventListener('pointerdown', onPointerDown);
 
-            document.getElementById(`selectLayerBtn-${index}`).addEventListener("pointerup",e=>{
+            document.getElementById(`selectLayerBtn-${index}`).addEventListener("pointerdown",e=>{
                 e.stopPropagation();
                 setLayer(e.target.getAttribute("tile-layer"));
                 addToUndoStack();
             })
-            document.getElementById(`setLayerVisBtn-${index}`).addEventListener("pointerup",e=>{
+            document.getElementById(`setLayerVisBtn-${index}`).addEventListener("pointerdown",e=>{
                 e.stopPropagation();
                 setLayerIsVisible(e.target.getAttribute("vis-layer"))
                 addToUndoStack();
             })
-            document.getElementById(`lockLayerBtn-${index}`).addEventListener("pointerup",e=>{
+            document.getElementById(`lockLayerBtn-${index}`).addEventListener("pointerdown",e=>{
                 e.stopPropagation();
                 setLayerIsLocked(e.target.getAttribute("lock-layer"))
                 addToUndoStack();
@@ -519,7 +519,7 @@ const TilemapEditor = {};
     }
 
     const setMouseIsTrue=(e)=> {
-        if(e.button === 0) {
+        if (e.pointerType === 'touch' || e.button === 0) {
             isMouseDown = true;
         }
         else if(e.button === 1){
@@ -529,7 +529,7 @@ const TilemapEditor = {};
     }
 
     const setMouseIsFalse=(e)=> {
-        if(e.button === 0) {
+        if (e.pointerType === 'touch' || e.button === 0) {
             isMouseDown = false;
         }
         else if(e.button === 1 && ACTIVE_TOOL === TOOLS.PAN){
@@ -642,14 +642,7 @@ const TilemapEditor = {};
         const {x,y} = getSelectedTile(event)[0];
         const key = `${x}-${y}`;
 
-        // console.log(event.button)
-        if (event.shiftKey) {
-            removeTile(key);
-        } else if (event.ctrlKey || event.button === 2 || ACTIVE_TOOL === TOOLS.PICK) {
-            const pickedTile = getTile(key, true);
-            if(ACTIVE_TOOL === TOOLS.BRUSH && !pickedTile) setActiveTool(TOOLS.ERASE); //picking empty tile, sets tool to eraser
-            else if(ACTIVE_TOOL === TOOLS.FILL || ACTIVE_TOOL === TOOLS.RAND) setActiveTool(TOOLS.BRUSH); //
-        } else {
+        if (event.pointerType === 'touch') {
             if(ACTIVE_TOOL === TOOLS.BRUSH){
                 addTile(key);
             } else if(ACTIVE_TOOL === TOOLS.ERASE) {
@@ -658,6 +651,25 @@ const TilemapEditor = {};
                 addRandomTile(key);
             } else if (ACTIVE_TOOL === TOOLS.FILL){
                 fillEmptyOrSameTiles(key);
+            }
+        } else {
+            // console.log(event.button)
+            if (event.shiftKey) {
+                removeTile(key);
+            } else if (event.ctrlKey || event.button === 2 || ACTIVE_TOOL === TOOLS.PICK) {
+                const pickedTile = getTile(key, true);
+                if(ACTIVE_TOOL === TOOLS.BRUSH && !pickedTile) setActiveTool(TOOLS.ERASE); //picking empty tile, sets tool to eraser
+                else if(ACTIVE_TOOL === TOOLS.FILL || ACTIVE_TOOL === TOOLS.RAND) setActiveTool(TOOLS.BRUSH); //
+            } else {
+                if(ACTIVE_TOOL === TOOLS.BRUSH){
+                    addTile(key);
+                } else if(ACTIVE_TOOL === TOOLS.ERASE) {
+                    removeTile(key);
+                } else if (ACTIVE_TOOL === TOOLS.RAND){
+                    addRandomTile(key);
+                } else if (ACTIVE_TOOL === TOOLS.FILL){
+                    fillEmptyOrSameTiles(key);
+                }
             }
         }
         draw();
@@ -1384,7 +1396,7 @@ const TilemapEditor = {};
             tileDataSel.addEventListener('change', () => {
                 selectMode();
             });
-            compEl.querySelector('#addTileTagBtn').addEventListener('click', () => {
+            compEl.querySelector('#addTileTagBtn').addEventListener('pointerup', () => {
                 const result = window.prompt("Name your tag", "solid()");
                 if(result !== null){
                     if (result in tileSets[tilesetDataSel.value].tags) {
@@ -1396,7 +1408,7 @@ const TilemapEditor = {};
                     addToUndoStack();
                 }
             });
-            compEl.querySelector('#removeTileTagBtn').addEventListener('click', () => {
+            compEl.querySelector('#removeTileTagBtn').addEventListener('pointerup', () => {
                 if (tileDataSel.value && tileDataSel.value in tileSets[tilesetDataSel.value].tags) {
                     delete tileSets[tilesetDataSel.value].tags[tileDataSel.value];
                     updateTilesetDataList();
@@ -1414,7 +1426,7 @@ const TilemapEditor = {};
             el.animEnd().addEventListener('change', e =>{
                 getCurrentAnimation().end = Number(el.animEnd().value);
             });
-            compEl.querySelector('#addTileFrameBtn').addEventListener('click', ()=>{
+            compEl.querySelector('#addTileFrameBtn').addEventListener('pointerup', ()=>{
                 const result = window.prompt("Name your object", `obj${Object.keys(tileSets[tilesetDataSel.value]?.frames||{}).length}`);
                 if(result !== null){
                     if (result in tileSets[tilesetDataSel.value].frames) {
@@ -1439,14 +1451,14 @@ const TilemapEditor = {};
                     updateTilesetGridContainer();
                 }
             });
-            compEl.querySelector('#removeTileFrameBtn').addEventListener('click', ()=>{
+            compEl.querySelector('#removeTileFrameBtn').addEventListener('pointerup', ()=>{
                 if (tileFrameSel.value && tileFrameSel.value in tileSets[tilesetDataSel.value].frames && confirm(`Are you sure you want to delete ${tileFrameSel.value}`)) {
                     delete tileSets[tilesetDataSel.value].frames[tileFrameSel.value];
                     updateTilesetDataList(true);
                     updateTilesetGridContainer();
                 }
             });
-            el.renameTileFrameBtn().addEventListener('click', ()=>{
+            el.renameTileFrameBtn().addEventListener('pointerup', ()=>{
                 renameKeyInObjectForSelectElement(tileFrameSel, tileSets[tilesetDataSel.value]?.frames, "object");
             });
             el.tileFrameCount().addEventListener('change', e=>{
@@ -1462,7 +1474,7 @@ const TilemapEditor = {};
                 el.animSpeed().value = getCurrentAnimation()?.speed || 1;
                 updateTilesetGridContainer();
             });
-            compEl.querySelector('#addTileAnimBtn').addEventListener('click',()=>{
+            compEl.querySelector('#addTileAnimBtn').addEventListener('pointerup',()=>{
                 const result = window.prompt("Name your animation", `anim${Object.keys(tileSets[tilesetDataSel.value]?.frames[tileFrameSel.value]?.animations || {}).length}`);
                 if(result !== null){
                     if(!tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations){
@@ -1484,7 +1496,7 @@ const TilemapEditor = {};
                     updateTilesetGridContainer();
                 }
             });
-            compEl.querySelector('#removeTileAnimBtn').addEventListener('click',()=>{
+            compEl.querySelector('#removeTileAnimBtn').addEventListener('pointerup',()=>{
                 if (tileAnimSel.value && tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations
                     && tileAnimSel.value in tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations
                     && confirm(`Are you sure you want to delete ${tileAnimSel.value}`)
@@ -1494,7 +1506,7 @@ const TilemapEditor = {};
                     updateTilesetGridContainer();
                 }
             });
-            el.renameTileAnimBtn().addEventListener('click', ()=>{
+            el.renameTileAnimBtn().addEventListener('pointerup', ()=>{
                 renameKeyInObjectForSelectElement(tileAnimSel, tileSets[tilesetDataSel.value]?.frames[tileFrameSel.value]?.animations, "animation");
             });
 
@@ -1545,7 +1557,7 @@ const TilemapEditor = {};
             const duplicateMapBtn = compEl.querySelector('#duplicateMapBtn');
             const removeMapBtn = compEl.querySelector('#removeMapBtn');
 
-            addLayerBtn.addEventListener('click', () => {
+            addLayerBtn.addEventListener('pointerup', () => {
                 addToUndoStack();
                 addLayer();
             });
@@ -1554,7 +1566,7 @@ const TilemapEditor = {};
                 setActiveMap(e.target.value);
                 addToUndoStack();
             });
-            addMapBtn.addEventListener('click', () => {
+            addMapBtn.addEventListener('pointerup', () => {
                 const suggestMapName = `Map ${Object.keys(maps).length + 1}`;
                 const result = window.prompt("Enter new map key...", suggestMapName);
                 if (result !== null) {
@@ -1569,7 +1581,7 @@ const TilemapEditor = {};
                     updateMaps();
                 }
             });
-            duplicateMapBtn.addEventListener('click', () => {
+            duplicateMapBtn.addEventListener('pointerup', () => {
                 const makeNewKey = key => {
                     const suggestedNew = `${key}_copy`;
                     if (suggestedNew in maps) {
@@ -1583,7 +1595,7 @@ const TilemapEditor = {};
                 updateMaps();
                 addToUndoStack();
             });
-            removeMapBtn.addEventListener('click', () => {
+            removeMapBtn.addEventListener('pointerup', () => {
                 addToUndoStack();
                 delete maps[ACTIVE_MAP];
                 setActiveMap(Object.keys(maps)[0]);
@@ -1664,7 +1676,7 @@ const TilemapEditor = {};
                 }
             })
         })
-        document.getElementById("replaceTilesetBtn").addEventListener("click",()=>{
+        document.getElementById("replaceTilesetBtn").addEventListener("pointerup",()=>{
             if (selectedTileSetLoader.onSelectImage) {
                 document.getElementById("tilesetReplaceInput").click();
             }
@@ -1681,7 +1693,7 @@ const TilemapEditor = {};
             })
         })
         // remove tileset
-        document.getElementById("addTilesetBtn").addEventListener("click",()=>{
+        document.getElementById("addTilesetBtn").addEventListener("pointerup",()=>{
             if (selectedTileSetLoader.onSelectImage) {
                 document.getElementById("tilesetReadInput").click();
             }
@@ -1715,14 +1727,14 @@ const TilemapEditor = {};
         }
         TilemapEditor.IMAGES = IMAGES;
         TilemapEditor.deleteTilesetWithIndex = deleteTilesetWithIndex;
-        document.getElementById("removeTilesetBtn").addEventListener("click",()=>{
+        document.getElementById("removeTilesetBtn").addEventListener("pointerup",()=>{
             //Remove current tileset
             if (tilesetDataSel.value !== "0") {
                 deleteTilesetWithIndex(Number(tilesetDataSel.value));
             }
         });
 
-        document.getElementById("toolButtonsWrapper").addEventListener("click",e=>{
+        document.getElementById("toolButtonsWrapper").addEventListener("pointerup",e=>{
             if (DEBUG) console.log("ACTIVE_TOOL", e.target.value)
             if(e.target.getAttribute("name") === "tool") setActiveTool(Number(e.target.value));
         })
@@ -1733,12 +1745,12 @@ const TilemapEditor = {};
             setCropSize(Number(e.target.value));
         })
 
-        document.getElementById("clearCanvasBtn").addEventListener('click', clearCanvas);
+        document.getElementById("clearCanvasBtn").addEventListener('pointerup', clearCanvas);
         if(onApply){
-            confirmBtn.addEventListener('click', () => onApply.onClick(getExportData()));
+            confirmBtn.addEventListener('pointerup', () => onApply.onClick(getExportData()));
         }
 
-        document.getElementById("renameMapBtn").addEventListener("click",()=>{
+        document.getElementById("renameMapBtn").addEventListener("pointerup",()=>{
             const newName = window.prompt("Change map name:", maps[ACTIVE_MAP].name || "Map");
             if(newName !== null && maps[ACTIVE_MAP].name !== newName){
                 if(Object.values(maps).map(map=>map.name).includes(newName)){
@@ -1751,32 +1763,33 @@ const TilemapEditor = {};
         })
 
         const fileMenuDropDown = document.getElementById("fileMenuDropDown");
-        const makeMenuItem = (name, value, description) =>{
+        const makeMenuItem = (name, value, description, onClick) =>{
             const menuItem = document.createElement("span");
             menuItem.className = "item";
             menuItem.innerText = name;
             menuItem.title = description || name;
             menuItem.value = value;
+            menuItem.addEventListener('pointerup', onClick);
             fileMenuDropDown.appendChild(menuItem);
             return menuItem;
         }
-        makeMenuItem('Clear saved state', 'clearSavedState', 'Remove saved editor state').onclick = () => {
+        makeMenuItem('Clear saved state', 'clearSavedState', 'Remove saved editor state', () => {
             try {
                 localStorage.removeItem('tilemapEditorState');
             } catch (e) {
                 console.warn('Failed to clear saved state', e);
             }
-        };
+        });
         Object.entries(tileMapExporters).forEach(([key, exporter])=>{
-            makeMenuItem(exporter.name, key,exporter.description).onclick = () => {
+            makeMenuItem(exporter.name, key,exporter.description, () => {
                 exporter.transformer(getExportData());
-            }
+            })
             apiTileMapExporters[key].getData = () => exporter.transformer(getExportData());
         })
         TilemapEditor.exporters = apiTileMapExporters;
 
         Object.entries(apiTileMapImporters).forEach(([key, importer])=>{
-            makeMenuItem(importer.name, key,importer.description).onclick = () => {
+            makeMenuItem(importer.name, key,importer.description, () => {
                 if(importer.onSelectFiles) {
                     const input = document.createElement("input");
                     input.type = "file";
@@ -1788,7 +1801,7 @@ const TilemapEditor = {};
                     })
                     input.click();
                 }
-            }
+            })
             // apiTileMapImporters[key].setData = (files) => importer.onSelectFiles(loadData, files);
         })
         document.getElementById("toggleFlipX").addEventListener("change",(e)=>{
@@ -1810,11 +1823,11 @@ const TilemapEditor = {};
             draw();
         })
 
-        document.getElementById("undoBtn").addEventListener("click", undo);
-        document.getElementById("redoBtn").addEventListener("click", redo);
-        document.getElementById("zoomIn").addEventListener("click", zoomIn);
-        document.getElementById("zoomOut").addEventListener("click", zoomOut);
-        document.getElementById("setSymbolsVisBtn").addEventListener("click", ()=>toggleSymbolsVisible())
+        document.getElementById("undoBtn").addEventListener("pointerup", undo);
+        document.getElementById("redoBtn").addEventListener("pointerup", redo);
+        document.getElementById("zoomIn").addEventListener("pointerup", zoomIn);
+        document.getElementById("zoomOut").addEventListener("pointerup", zoomOut);
+        document.getElementById("setSymbolsVisBtn").addEventListener("pointerup", ()=>toggleSymbolsVisible())
         // Scroll zoom in/out - use wheel instead of scroll event since theres no scrollbar on the map
         canvas.addEventListener('wheel', e=> {
             if (e.deltaY < 0) zoomIn();
