@@ -425,6 +425,7 @@ const TilemapEditor = {};
     }
 
     const draw = (shouldDrawGrid = true) =>{
+        if (!maps[ACTIVE_MAP]) return;
         const ctx = getContext();
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         ctx.canvas.width = WIDTH;
@@ -1364,16 +1365,16 @@ const TilemapEditor = {};
         layout.registerComponent('Tileset', container => {
             container.element.innerHTML = tilesetTemplate;
             const compEl = container.getElement();
-            tilesetContainer = compEl.find('.tileset-container')[0];
-            tilesetSelection = compEl.find('.tileset-container-selection')[0];
-            cropSize = compEl.find('#cropSize')[0];
-            tileDataSel = compEl.find('#tileDataSel')[0];
-            tileFrameSel = compEl.find('#tileFrameSel')[0];
-            tileAnimSel = compEl.find('#tileAnimSel')[0];
-            tilesetDataSel = compEl.find('#tilesetDataSel')[0];
-            objectParametersEditor = compEl.find('#objectParametersEditor')[0];
+            tilesetContainer = compEl.querySelector('.tileset-container');
+            tilesetSelection = compEl.querySelector('.tileset-container-selection');
+            cropSize = compEl.querySelector('#cropSize');
+            tileDataSel = compEl.querySelector('#tileDataSel');
+            tileFrameSel = compEl.querySelector('#tileFrameSel');
+            tileAnimSel = compEl.querySelector('#tileAnimSel');
+            tilesetDataSel = compEl.querySelector('#tilesetDataSel');
+            objectParametersEditor = compEl.querySelector('#objectParametersEditor');
             Object.keys(el).forEach(key=>{
-                el[key] = () => compEl.find(`#${key}`)[0];
+                el[key] = () => compEl.querySelector(`#${key}`);
             });
 
             tilesetContainer.addEventListener('contextmenu', e => {
@@ -1390,7 +1391,7 @@ const TilemapEditor = {};
             });
             tilesetContainer.addEventListener('pointerup', e => {
                 setTimeout(() => {
-                    compEl.find('#tilesetDataDetails')[0].open = false;
+                    compEl.querySelector('#tilesetDataDetails').open = false;
                 }, 100);
 
                 selection = getSelectedTile(e);
@@ -1433,7 +1434,7 @@ const TilemapEditor = {};
             tileDataSel.addEventListener('change', () => {
                 selectMode();
             });
-            compEl.find('#addTileTagBtn')[0].addEventListener('click', () => {
+            compEl.querySelector('#addTileTagBtn').addEventListener('click', () => {
                 const result = window.prompt("Name your tag", "solid()");
                 if(result !== null){
                     if (result in tileSets[tilesetDataSel.value].tags) {
@@ -1445,7 +1446,7 @@ const TilemapEditor = {};
                     addToUndoStack();
                 }
             });
-            compEl.find('#removeTileTagBtn')[0].addEventListener('click', () => {
+            compEl.querySelector('#removeTileTagBtn').addEventListener('click', () => {
                 if (tileDataSel.value && tileDataSel.value in tileSets[tilesetDataSel.value].tags) {
                     delete tileSets[tilesetDataSel.value].tags[tileDataSel.value];
                     updateTilesetDataList();
@@ -1463,7 +1464,7 @@ const TilemapEditor = {};
             el.animEnd().addEventListener('change', e =>{
                 getCurrentAnimation().end = Number(el.animEnd().value);
             });
-            compEl.find('#addTileFrameBtn')[0].addEventListener('click', ()=>{
+            compEl.querySelector('#addTileFrameBtn').addEventListener('click', ()=>{
                 const result = window.prompt("Name your object", `obj${Object.keys(tileSets[tilesetDataSel.value]?.frames||{}).length}`);
                 if(result !== null){
                     if (result in tileSets[tilesetDataSel.value].frames) {
@@ -1488,7 +1489,7 @@ const TilemapEditor = {};
                     updateTilesetGridContainer();
                 }
             });
-            compEl.find('#removeTileFrameBtn')[0].addEventListener('click', ()=>{
+            compEl.querySelector('#removeTileFrameBtn').addEventListener('click', ()=>{
                 if (tileFrameSel.value && tileFrameSel.value in tileSets[tilesetDataSel.value].frames && confirm(`Are you sure you want to delete ${tileFrameSel.value}`)) {
                     delete tileSets[tilesetDataSel.value].frames[tileFrameSel.value];
                     updateTilesetDataList(true);
@@ -1511,7 +1512,7 @@ const TilemapEditor = {};
                 el.animSpeed().value = getCurrentAnimation()?.speed || 1;
                 updateTilesetGridContainer();
             });
-            compEl.find('#addTileAnimBtn')[0].addEventListener('click',()=>{
+            compEl.querySelector('#addTileAnimBtn').addEventListener('click',()=>{
                 const result = window.prompt("Name your animation", `anim${Object.keys(tileSets[tilesetDataSel.value]?.frames[tileFrameSel.value]?.animations || {}).length}`);
                 if(result !== null){
                     if(!tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations){
@@ -1533,7 +1534,7 @@ const TilemapEditor = {};
                     updateTilesetGridContainer();
                 }
             });
-            compEl.find('#removeTileAnimBtn')[0].addEventListener('click',()=>{
+            compEl.querySelector('#removeTileAnimBtn').addEventListener('click',()=>{
                 if (tileAnimSel.value && tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations
                     && tileAnimSel.value in tileSets[tilesetDataSel.value].frames[tileFrameSel.value]?.animations
                     && confirm(`Are you sure you want to delete ${tileAnimSel.value}`)
@@ -1566,8 +1567,8 @@ const TilemapEditor = {};
         layout.registerComponent('Map', container => {
             container.element.innerHTML = mapTemplate;
             const compEl = container.getElement();
-            canvas = compEl.find('#mapCanvas')[0];
-            const canvasWrapper = compEl.find('#canvas_wrapper')[0];
+            canvas = compEl.querySelector('#mapCanvas');
+            const canvasWrapper = compEl.querySelector('#canvas_wrapper');
             container.on('resize', () => {
                 updateMapSize({mapWidth: maps[ACTIVE_MAP]?.mapWidth, mapHeight: maps[ACTIVE_MAP]?.mapHeight});
             });
@@ -1584,14 +1585,14 @@ const TilemapEditor = {};
         layout.registerComponent('Layers', container => {
             container.element.innerHTML = layersTemplate;
             const compEl = container.getElement();
-            layersElement = compEl.find('#layers')[0];
-            mapsDataSel = compEl.find('#mapsDataSel')[0];
-            const canvasWidthInp = compEl.find('#canvasWidthInp')[0];
-            const canvasHeightInp = compEl.find('#canvasHeightInp')[0];
-            const addLayerBtn = compEl.find('#addLayerBtn')[0];
-            const addMapBtn = compEl.find('#addMapBtn')[0];
-            const duplicateMapBtn = compEl.find('#duplicateMapBtn')[0];
-            const removeMapBtn = compEl.find('#removeMapBtn')[0];
+            layersElement = compEl.querySelector('#layers');
+            mapsDataSel = compEl.querySelector('#mapsDataSel');
+            const canvasWidthInp = compEl.querySelector('#canvasWidthInp');
+            const canvasHeightInp = compEl.querySelector('#canvasHeightInp');
+            const addLayerBtn = compEl.querySelector('#addLayerBtn');
+            const addMapBtn = compEl.querySelector('#addMapBtn');
+            const duplicateMapBtn = compEl.querySelector('#duplicateMapBtn');
+            const removeMapBtn = compEl.querySelector('#removeMapBtn');
 
             addLayerBtn.addEventListener('click', () => {
                 addToUndoStack();
