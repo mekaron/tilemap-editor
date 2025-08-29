@@ -627,7 +627,6 @@ const TilemapEditor = {};
 
     const addRandomTile = (key) =>{
         if (maps[ACTIVE_MAP].layers[currentLayer].locked) return;
-        // TODO add probability for empty
         if (shouldNotAddAnimatedTile()) {
             maps[ACTIVE_MAP].layers[currentLayer].tiles[key] = selection[Math.floor(Math.random()*selection.length)];
         }else {
