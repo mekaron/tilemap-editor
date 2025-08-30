@@ -1,6 +1,6 @@
 describe('Tilemap editor key flows', () => {
   beforeEach(() => {
-    cy.visit('index.html');
+    cy.visit('/');
   });
 
   it('places a tile on the map', () => {
