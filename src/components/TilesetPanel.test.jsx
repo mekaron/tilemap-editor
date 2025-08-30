@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import TilesetPanel from './TilesetPanel';
 import EditorContext from '../context/EditorContext';
+import tilesetLoaders from '../tilesetLoaders';
 
 beforeAll(() => {
   class FileReaderMock {
@@ -39,6 +40,7 @@ test('adding tileset updates state and UI', async () => {
     tileSets: {},
     activeMap: null,
     activeTileset: '',
+    activeLoader: 'default',
   };
   const { container, getState } = setup(initialState);
   const input = container.querySelector('#tilesetReadInput');
@@ -63,6 +65,7 @@ test('replacing tileset updates existing entry', async () => {
     tileSets: { '0': { src: 'old', name: 'old.png' } },
     activeMap: null,
     activeTileset: '0',
+    activeLoader: 'default',
   };
   const { container, getState } = setup(initialState);
   const input = container.querySelector('#tilesetReplaceInput');
@@ -83,6 +86,7 @@ test('removing tileset updates state and select options', () => {
     tileSets: { '0': { src: 'a', name: 'a' }, '1': { src: 'b', name: 'b' } },
     activeMap: null,
     activeTileset: '0',
+    activeLoader: 'default',
   };
   const { container, getState } = setup(initialState);
   const btn = container.querySelector('#removeTilesetBtn');
@@ -92,5 +96,23 @@ test('removing tileset updates state and select options', () => {
   expect(getState().activeTileset).toBe('1');
   const select = container.querySelector('#tilesetDataSel');
   expect(select.options.length).toBe(1);
+});
+
+test('loaders populate and selection updates state', () => {
+  const initialState = {
+    zoom: 1,
+    tileSize: 32,
+    activeTool: 0,
+    maps: {},
+    tileSets: {},
+    activeMap: null,
+    activeTileset: '',
+    activeLoader: 'default',
+  };
+  const { container, getState } = setup(initialState);
+  const select = container.querySelector('#tileSetLoadersSel');
+  expect(select.options.length).toBe(tilesetLoaders.length);
+  fireEvent.change(select, { target: { value: tilesetLoaders[1].id } });
+  expect(getState().activeLoader).toBe(tilesetLoaders[1].id);
 });
 

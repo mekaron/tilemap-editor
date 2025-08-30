@@ -11,6 +11,7 @@ const EditorProvider = ({ children }) => {
     tileSets: {},
     activeMap: null,
     activeTileset: null,
+    activeLoader: 'default',
   });
 
   useEffect(() => {
