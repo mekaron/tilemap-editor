@@ -5,6 +5,8 @@ export default function TilesetPanel() {
   const { editorState, setEditorState } = useContext(EditorContext);
   const { tileSets, activeTileset } = editorState;
   const canvasRef = useRef(null);
+  const addInputRef = useRef(null);
+  const replaceInputRef = useRef(null);
 
   useEffect(() => {
     const activeTilesetData = tileSets[activeTileset];
@@ -27,6 +29,67 @@ export default function TilesetPanel() {
     setEditorState({ ...editorState, activeTileset: e.target.value });
   };
 
+  const handleAddClick = () => {
+    addInputRef.current?.click();
+  };
+
+  const handleReplaceClick = () => {
+    replaceInputRef.current?.click();
+  };
+
+  const readFile = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+
+  const handleAddTileset = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const src = await readFile(file);
+    const newKey = Date.now().toString();
+    setEditorState({
+      ...editorState,
+      tileSets: {
+        ...tileSets,
+        [newKey]: { src, name: file.name },
+      },
+      activeTileset: newKey,
+    });
+    e.target.value = '';
+  };
+
+  const handleReplaceTileset = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !activeTileset) return;
+    const src = await readFile(file);
+    setEditorState({
+      ...editorState,
+      tileSets: {
+        ...tileSets,
+        [activeTileset]: {
+          ...tileSets[activeTileset],
+          src,
+          name: file.name,
+        },
+      },
+    });
+    e.target.value = '';
+  };
+
+  const handleRemoveTileset = () => {
+    if (!activeTileset) return;
+    const newTileSets = { ...tileSets };
+    delete newTileSets[activeTileset];
+    const newActive = Object.keys(newTileSets)[0] || null;
+    setEditorState({
+      ...editorState,
+      tileSets: newTileSets,
+      activeTileset: newActive,
+    });
+  };
+
   return (
     <div className="card_left_column">
       <details className="details_container sticky_left" id="tilesetDataDetails" open>
@@ -40,11 +103,29 @@ export default function TilesetPanel() {
                 </option>
               ))}
             </select>
-            <button id="replaceTilesetBtn" title="replace tileset">r</button>
-            <input id="tilesetReplaceInput" type="file" style={{ display: 'none' }} />
-            <button id="addTilesetBtn" title="add tileset">+</button>
-            <input id="tilesetReadInput" type="file" style={{ display: 'none' }} />
-            <button id="removeTilesetBtn" title="remove">-</button>
+            <button id="replaceTilesetBtn" title="replace tileset" onClick={handleReplaceClick}>
+              r
+            </button>
+            <input
+              id="tilesetReplaceInput"
+              type="file"
+              style={{ display: 'none' }}
+              ref={replaceInputRef}
+              onChange={handleReplaceTileset}
+            />
+            <button id="addTilesetBtn" title="add tileset" onClick={handleAddClick}>
+              +
+            </button>
+            <input
+              id="tilesetReadInput"
+              type="file"
+              style={{ display: 'none' }}
+              ref={addInputRef}
+              onChange={handleAddTileset}
+            />
+            <button id="removeTilesetBtn" title="remove" onClick={handleRemoveTileset}>
+              -
+            </button>
           </span>
         </summary>
         <div>
