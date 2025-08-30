@@ -69,6 +69,29 @@ export default function LayersPanel() {
     setEditorState({ ...editorState, activeLayer: layerIndex });
   };
 
+  const deleteLayer = (layerIndex) => {
+    if (confirm('Are you sure you want to delete this layer?')) {
+      const newLayers = layers.filter((_, i) => i !== layerIndex);
+      let newActiveLayer = editorState.activeLayer;
+      if (newActiveLayer === layerIndex) {
+        newActiveLayer = Math.max(0, newActiveLayer - 1);
+      } else if (newActiveLayer > layerIndex) {
+        newActiveLayer -= 1;
+      }
+      setEditorState({
+        ...editorState,
+        maps: {
+          ...maps,
+          [activeMap]: {
+            ...activeMapData,
+            layers: newLayers,
+          },
+        },
+        activeLayer: newActiveLayer,
+      });
+    }
+  };
+
   return (
     <div className="card_right-column layers">
       <div id="mapSelectContainer" className="tilemaps_selector">
@@ -125,13 +148,20 @@ export default function LayersPanel() {
       </label>
       <div className="layers" id="layers">
         {layers.map((layer, index) => (
-          <div key={index} className={`layer ${editorState.activeLayer === index ? 'active' : ''}`} data-layer-index={index}>
+          <div
+            key={index}
+            className={`layer ${editorState.activeLayer === index ? 'active' : ''}`}
+            data-layer-index={index}
+          >
             <div className="layer-handle" ref={handleRef}>☰</div>
             <div className="layer select_layer" onClick={() => setLayer(index)} title={layer.name}>
               {layer.name} {layer.opacity < 1 ? ` (${layer.opacity})` : ''}
             </div>
             <span onClick={() => setLayerIsVisible(index)}>{layer.visible ? '👁️' : '👓'}</span>
             <span onClick={() => setLayerIsLocked(index)}>{layer.locked ? '🔒' : '🔓'}</span>
+            <button className="delete-layer" title="Delete layer" onClick={() => deleteLayer(index)}>
+              🗑️
+            </button>
           </div>
         ))}
       </div>
