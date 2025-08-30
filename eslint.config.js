@@ -4,6 +4,9 @@ const pluginReactConfig = require("eslint-plugin-react/configs/recommended");
 
 module.exports = [
   {
+    ignores: ["src/tilemap-editor-legacy.js"],
+  },
+  {
     languageOptions: {
       globals: {
         ...globals.browser,

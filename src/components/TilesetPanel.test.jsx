@@ -94,7 +94,7 @@ test('removing tileset updates state and select options', () => {
   expect(select.options.length).toBe(1);
 });
 
-test('double-clicking canvas renames tile symbol', () => {
+test('double-clicking canvas renames tile symbol', async () => {
   const initialState = {
     zoom: 1,
     tileSize: 32,
@@ -117,10 +117,10 @@ test('double-clicking canvas renames tile symbol', () => {
   const canvas = container.querySelector('#tilesetCanvas');
   canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 32, height: 32 });
   const promptSpy = jest.spyOn(window, 'prompt').mockReturnValue('B');
-  fireEvent.dblClick(canvas, { offsetX: 1, offsetY: 1 });
+  fireEvent.doubleClick(canvas, { offsetX: 1, offsetY: 1 });
   expect(promptSpy).toHaveBeenCalled();
   promptSpy.mockRestore();
-  return waitFor(() => {
+  await waitFor(() => {
     expect(getState().tileSets['0'].tileData['0-0'].tileSymbol).toBe('B');
   });
 });
