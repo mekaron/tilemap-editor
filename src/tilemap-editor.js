@@ -1,5 +1,11 @@
 // @ts-check
 import { GoldenLayout } from 'https://cdn.jsdelivr.net/npm/@antosubash/golden-layout@2.6.0/dist/bundle/esm/golden-layout.js';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import TilesetPanel from './components/TilesetPanel';
+import MapCanvas from './components/MapCanvas';
+import LayersPanel from './components/LayersPanel';
+import LayerSettings from './components/LayerSettings';
 const DEBUG = new URLSearchParams(window.location.search).has('debug');
 const TilemapEditor = {};
     // Call once on element to add behavior, toggle on/off isDraggable attr to enable
@@ -63,18 +69,6 @@ const TilemapEditor = {};
     TilemapEditor.toBase64 = toBase64;
 
     const decoupleReferenceFromObj = (obj) => JSON.parse(JSON.stringify(obj));
-    const getHtml = async () => {
-        const response = await fetch('src/index.html');
-        return await response.text();
-    };
-    const getComponentHtml = async (name, replacements = {}) => {
-        const response = await fetch(`src/components/${name}.html`);
-        let template = await response.text();
-        Object.entries(replacements).forEach(([key, value]) => {
-            template = template.replace(new RegExp(`{{${key}}}`, 'g'), value);
-        });
-        return template;
-    };
     const getEmptyLayer = (name="layer")=> ({tiles:{}, visible: true, name, opacity: 1});
     let tilesetImage, canvas, tilesetContainer, tilesetSelection, cropSize,
         confirmBtn, tilesetGridContainer,
@@ -1297,16 +1291,6 @@ const TilemapEditor = {};
         const canvasHeight = mapTileHeight * tileSize * ZOOM;
 
         if (SIZE_OF_CROP < 12) ZOOM = 2;// Automatically start with zoom 2 when the tilesize is tiny
-        // Attach elements
-        attachTo.innerHTML = await getHtml();
-        attachTo.className = "tilemap_editor_root";
-
-        const [tilesetTemplate, mapTemplate, layersTemplate, layerSettingsTemplate] = await Promise.all([
-            getComponentHtml('tileset'),
-            getComponentHtml('map-canvas', {width: canvasWidth, height: canvasHeight, mapTileWidth}),
-            getComponentHtml('layers'),
-            getComponentHtml('layer-settings')
-        ]);
 
         const layoutContainer = document.getElementById('layoutContainer');
         const layout = new GoldenLayout({
@@ -1327,8 +1311,8 @@ const TilemapEditor = {};
         }, layoutContainer);
         window.addEventListener('resize', () => layout.updateSize());
         layout.registerComponent('Tileset', container => {
-            container.element.innerHTML = tilesetTemplate;
-            const compEl = container.getElement();
+            createRoot(container.element).render(<TilesetPanel />);
+            const compEl = container.element;
             tilesetContainer = compEl.querySelector('.tileset-container');
             tilesetSelection = compEl.querySelector('.tileset-container-selection');
             cropSize = compEl.querySelector('#cropSize');
@@ -1530,8 +1514,8 @@ const TilemapEditor = {};
             });
         });
         layout.registerComponent('Map', container => {
-            container.element.innerHTML = mapTemplate;
-            const compEl = container.getElement();
+            createRoot(container.element).render(<MapCanvas width={canvasWidth} height={canvasHeight} />);
+            const compEl = container.element;
             canvas = compEl.querySelector('#mapCanvas');
             const canvasWrapper = compEl.querySelector('#canvas_wrapper');
             container.on('resize', () => {
@@ -1548,8 +1532,8 @@ const TilemapEditor = {};
             });
         });
         layout.registerComponent('Layers', container => {
-            container.element.innerHTML = layersTemplate;
-            const compEl = container.getElement();
+            createRoot(container.element).render(<LayersPanel />);
+            const compEl = container.element;
             layersElement = compEl.querySelector('#layers');
             mapsDataSel = compEl.querySelector('#mapsDataSel');
             const canvasWidthInp = compEl.querySelector('#canvasWidthInp');
@@ -1612,7 +1596,7 @@ const TilemapEditor = {};
             });
         });
         layout.registerComponent('Layer Settings', container => {
-            container.element.innerHTML = layerSettingsTemplate;
+            createRoot(container.element).render(<LayerSettings />);
         });
         layout.init();
 
