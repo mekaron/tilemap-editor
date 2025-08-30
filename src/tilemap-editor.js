@@ -242,9 +242,10 @@ const TilemapEditor = {};
             const layerEl = document.querySelector(`.layer[data-layer-index="${index}"]`);
             const handleEl = layerEl.querySelector('.layer-handle');
             const onPointerDown = (e) => {
-                if (e.pointerType === 'touch' || e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
+                if (e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
                     return;
                 }
+                e.preventDefault();
 
                 const draggedItem = layerEl;
                 draggedItem.classList.add('dragging');
@@ -266,7 +267,8 @@ const TilemapEditor = {};
                     }
                 };
 
-                const onPointerUp = () => {
+                const onPointerUp = (e) => {
+                    e.preventDefault();
                     document.removeEventListener('pointermove', onPointerMove);
                     document.removeEventListener('pointerup', onPointerUp);
 
@@ -291,8 +293,8 @@ const TilemapEditor = {};
                     }
                 };
 
-                document.addEventListener('pointermove', onPointerMove);
-                document.addEventListener('pointerup', onPointerUp);
+                document.addEventListener('pointermove', onPointerMove, {passive:false});
+                document.addEventListener('pointerup', onPointerUp, {passive:false});
             };
 
             handleEl.addEventListener('pointerdown', onPointerDown);
