@@ -35,6 +35,30 @@ export default function LayersPanel() {
     setEditorState({ ...editorState, activeMap: e.target.value });
   };
 
+  const handleAddMap = () => {
+    const name = prompt('Enter map name');
+    if (!name) return;
+    const key = name.replace(/\s+/g, '_');
+    const newMap = {
+      name,
+      layers: [],
+      mapWidth: 0,
+      mapHeight: 0,
+      tileSize: editorState.tileSize,
+      width: 0,
+      height: 0,
+      gridColor: '#00FFFF',
+    };
+    setEditorState({
+      ...editorState,
+      maps: {
+        ...maps,
+        [key]: newMap,
+      },
+      activeMap: key,
+    });
+  };
+
   const setLayerIsVisible = (layerIndex) => {
     const newLayers = [...layers];
     newLayers[layerIndex].visible = !newLayers[layerIndex].visible;
@@ -79,7 +103,7 @@ export default function LayersPanel() {
             </option>
           ))}
         </select>
-        <button id="addMapBtn" title="Add tilemap">+</button>
+        <button id="addMapBtn" title="Add tilemap" onClick={handleAddMap}>+</button>
         <button id="removeMapBtn" title="Remove tilemap">-</button>
         <button id="duplicateMapBtn" title="Duplicate tilemap">📑</button>
         <a className="button" href="#popup1">🎚️</a>
