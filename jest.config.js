@@ -4,4 +4,5 @@ module.exports = {
     '^.+\\.[tj]sx?$': 'babel-jest',
   },
   moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
+  setupFiles: ['jest-canvas-mock'],
 };
