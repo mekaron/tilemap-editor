@@ -75,6 +75,10 @@ typings/
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 
+# Cypress output
+cypress/screenshots/
+cypress/videos/
+
 # Next.js build output
 .next
 
