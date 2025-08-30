@@ -1,9 +1,27 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import EditorContext from '../context/EditorContext';
 
 export default function TilesetPanel() {
   const { editorState, setEditorState } = useContext(EditorContext);
   const { tileSets, activeTileset } = editorState;
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const activeTilesetData = tileSets[activeTileset];
+    if (activeTilesetData && activeTilesetData.src) {
+      const img = new Image();
+      img.src = activeTilesetData.src;
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+        }
+      };
+    }
+  }, [activeTileset, tileSets]);
 
   const handleTilesetChange = (e) => {
     setEditorState({ ...editorState, activeTileset: e.target.value });
@@ -36,7 +54,9 @@ export default function TilesetPanel() {
           </div>
           <div className="tileset_opt_field">
             <span>Tileset loader:</span>
-            <select name="tileSetLoaders" id="tileSetLoadersSel"></select>
+            <select name="tileSetLoaders" id="tileSetLoadersSel">
+              <option value="default">Default</option>
+            </select>
           </div>
           <div className="tileset_info" id="tilesetSrcLabel"></div>
           <div className="tileset_info" id="tilesetHomeLink"></div>
@@ -130,7 +150,7 @@ export default function TilesetPanel() {
       </div>
       <div className="tileset-container">
         <div className="tileset-container-selection"></div>
-        <canvas id="tilesetCanvas"></canvas>
+        <canvas id="tilesetCanvas" ref={canvasRef}></canvas>
       </div>
     </div>
   );

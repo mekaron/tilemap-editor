@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EditorContext from './EditorContext';
+import initialData from '../../ioJsonData.json';
 
 const EditorProvider = ({ children }) => {
   const [editorState, setEditorState] = useState({
@@ -9,6 +10,13 @@ const EditorProvider = ({ children }) => {
     maps: {},
     tileSets: {},
   });
+
+  useEffect(() => {
+    setEditorState((prevState) => ({
+      ...prevState,
+      ...initialData,
+    }));
+  }, []);
 
   return (
     <EditorContext.Provider value={{ editorState, setEditorState }}>

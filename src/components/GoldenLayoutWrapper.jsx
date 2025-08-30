@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
+import { createRoot } from 'react-dom/client';
 import { GoldenLayout } from 'golden-layout';
 import TilesetPanel from './TilesetPanel';
 import MapCanvas from './MapCanvas';
@@ -7,21 +8,30 @@ import LayerSettings from './LayerSettings';
 import NavigationBar from './NavigationBar';
 import ToolButtons from './ToolButtons';
 import UtilityControls from './UtilityControls';
+import EditorContext from '../context/EditorContext';
 
 export default function GoldenLayoutWrapper() {
   const containerRef = useRef(null);
   const layoutRef = useRef(null);
+  const editorContextValue = useContext(EditorContext);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !editorContextValue) return;
 
     const layout = new GoldenLayout(containerRef.current);
     layoutRef.current = layout;
 
-    layout.registerComponent('Tileset', TilesetPanel);
-    layout.registerComponent('Map', MapCanvas);
-    layout.registerComponent('Layers', LayersPanel);
-    layout.registerComponent('Layer Settings', LayerSettings);
+    const registerComponent = (name, component) => {
+      layout.registerComponent(name, (container) => {
+        const root = createRoot(container.element);
+        root.render(<EditorContext.Provider value={editorContextValue}>{component}</EditorContext.Provider>);
+      });
+    };
+
+    registerComponent('Tileset', <TilesetPanel />);
+    registerComponent('Map', <MapCanvas />);
+    registerComponent('Layers', <LayersPanel />);
+    registerComponent('Layer Settings', <LayerSettings />);
 
     layout.loadLayout({
       root: {
@@ -47,7 +57,7 @@ export default function GoldenLayoutWrapper() {
         // ignore
       }
     };
-  }, []);
+  }, [editorContextValue]);
 
   return (
     <div id="tilemapjs_root" className="card tilemapjs_root">

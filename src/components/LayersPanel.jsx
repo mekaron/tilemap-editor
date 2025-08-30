@@ -4,6 +4,8 @@ import EditorContext from '../context/EditorContext';
 export default function LayersPanel() {
   const { editorState, setEditorState } = useContext(EditorContext);
   const { maps, activeMap } = editorState;
+  const activeMapData = maps[activeMap];
+  const layers = activeMapData ? activeMapData.layers : [];
 
   const handleMapChange = (e) => {
     setEditorState({ ...editorState, activeMap: e.target.value });
@@ -63,7 +65,13 @@ export default function LayersPanel() {
         </label>
         <button id="addLayerBtn" title="Add layer">+</button>
       </label>
-      <div className="layers" id="layers"></div>
+      <div className="layers" id="layers">
+        {layers.map((layer, index) => (
+          <div key={index} className="layer">
+            {layer.name}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

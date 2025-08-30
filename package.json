@@ -4,6 +4,9 @@
   "description": "A fat-free tilemap editor with zero dependencies and a scalable, mobile-friendly interface!",
   "main": "src/main.jsx",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "start": "serve",
     "start:debug": "serve -o /?debug",
     "predeploy": "node updatePwa.js",
