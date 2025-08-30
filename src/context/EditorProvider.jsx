@@ -9,12 +9,22 @@ const EditorProvider = ({ children }) => {
     activeTool: 0,
     maps: {},
     tileSets: {},
+    activeMap: null,
+    activeTileset: null,
   });
 
   useEffect(() => {
+    const maps = initialData.maps || {};
+    const tileSets = initialData.tileSets || {};
+    const activeMap = Object.keys(maps)[0] || null;
+    const activeTileset = Object.keys(tileSets)[0] || null;
+
     setEditorState((prevState) => ({
       ...prevState,
-      ...initialData,
+      maps,
+      tileSets,
+      activeMap,
+      activeTileset,
     }));
   }, []);
 

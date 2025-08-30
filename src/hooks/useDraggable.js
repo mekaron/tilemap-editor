@@ -1,69 +1,68 @@
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-/**
- * React hook that makes an element draggable.
- * @param {Object} options - configuration object
- * @param {Object} options.element - ref to element that will move
- * @param {Object} [options.onElement] - ref to element which listens for pointer events
- * @param {boolean} [options.isDrag=true] - whether dragging is enabled
- * @param {Function} [options.onDrag] - callback on drag
- * @param {boolean} [options.limitX=false] - limit dragging on X axis
- * @param {boolean} [options.limitY=false] - limit dragging on Y axis
- * @param {Function} [options.onRelease] - callback on release
- */
-export default function useDraggable({
-  element,
-  onElement = null,
-  isDrag = true,
-  onDrag = null,
-  limitX = false,
-  limitY = false,
-  onRelease = null,
-}) {
+export default function useDraggable(handleRef) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dropTarget, setDropTarget] = useState(null);
+
+  const onPointerDown = useCallback((e) => {
+    if (e.target.closest('[tile-layer],[vis-layer],[lock-layer],[rename-layer],[trash-layer]')) {
+      return;
+    }
+    e.preventDefault();
+    setIsDragging(true);
+    setDraggedItem(e.target.closest('.layer'));
+  }, []);
+
+  const onPointerMove = useCallback((e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+
+    const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+    const targetLayer = targetElement ? targetElement.closest('.layer') : null;
+
+    document.querySelectorAll('.layer').forEach(layer => {
+      if (layer !== targetLayer) {
+        layer.classList.remove('drop-target');
+      }
+    });
+
+    if (targetLayer && targetLayer !== draggedItem) {
+      targetLayer.classList.add('drop-target');
+      setDropTarget(targetLayer);
+    } else {
+      setDropTarget(null);
+    }
+  }, [isDragging, draggedItem]);
+
+  const onPointerUp = useCallback((e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    setIsDragging(false);
+    if (draggedItem) {
+      draggedItem.classList.remove('dragging');
+    }
+    if (dropTarget) {
+      dropTarget.classList.remove('drop-target');
+    }
+  }, [isDragging, draggedItem, dropTarget]);
+
   useEffect(() => {
-    const el = element?.current;
-    const handle = (onElement || element)?.current;
-    if (!el || !handle) return;
-
-    el.setAttribute('isDraggable', String(isDrag));
-    let isMouseDown = false;
-    let mouseX = 0;
-    let mouseY = 0;
-    let elementX = 0;
-    let elementY = 0;
-
-    const onMouseMove = (event) => {
-      if (!isMouseDown || el.getAttribute('isDraggable') === 'false') return;
-      const deltaX = event.clientX - mouseX;
-      const deltaY = event.clientY - mouseY;
-      if (!limitX) el.style.left = elementX + deltaX + 'px';
-      if (!limitY) el.style.top = elementY + deltaY + 'px';
-      if (onDrag) onDrag({ deltaX, deltaY, x: elementX + deltaX, y: elementY + deltaY, mouseX, mouseY });
-    };
-
-    const onMouseDown = (event) => {
-      if (el.getAttribute('isDraggable') === 'false') return;
-      mouseX = event.clientX;
-      mouseY = event.clientY;
-      isMouseDown = true;
-    };
-
-    const onMouseUp = () => {
-      if (el.getAttribute('isDraggable') === 'false') return;
-      isMouseDown = false;
-      elementX = parseInt(el.style.left) || 0;
-      elementY = parseInt(el.style.top) || 0;
-      if (onRelease) onRelease({ x: elementX, y: elementY });
-    };
-
-    handle.addEventListener('pointerdown', onMouseDown);
-    document.addEventListener('pointerup', onMouseUp);
-    document.addEventListener('pointermove', onMouseMove);
+    const handle = handleRef.current;
+    if (handle) {
+      handle.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+    }
 
     return () => {
-      handle.removeEventListener('pointerdown', onMouseDown);
-      document.removeEventListener('pointerup', onMouseUp);
-      document.removeEventListener('pointermove', onMouseMove);
+      if (handle) {
+        handle.removeEventListener('pointerdown', onPointerDown);
+      }
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
     };
-  }, [element, onElement, isDrag, onDrag, limitX, limitY, onRelease]);
+  }, [handleRef, onPointerDown, onPointerMove, onPointerUp]);
+
+  return { isDragging, draggedItem, dropTarget };
 }

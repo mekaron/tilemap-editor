@@ -1,14 +1,72 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef, useEffect } from 'react';
 import EditorContext from '../context/EditorContext';
+import useDraggable from '../hooks/useDraggable';
 
 export default function LayersPanel() {
   const { editorState, setEditorState } = useContext(EditorContext);
   const { maps, activeMap } = editorState;
   const activeMapData = maps[activeMap];
   const layers = activeMapData ? activeMapData.layers : [];
+  const handleRef = useRef(null);
+  const { isDragging, draggedItem, dropTarget } = useDraggable(handleRef);
+
+  useEffect(() => {
+    if (!isDragging && draggedItem && dropTarget) {
+      const fromIndex = Number(draggedItem.dataset.layerIndex);
+      const toIndex = Number(dropTarget.dataset.layerIndex);
+      if (fromIndex !== toIndex) {
+        const newLayers = [...layers];
+        [newLayers[fromIndex], newLayers[toIndex]] = [newLayers[toIndex], newLayers[fromIndex]];
+        setEditorState({
+          ...editorState,
+          maps: {
+            ...maps,
+            [activeMap]: {
+              ...activeMapData,
+              layers: newLayers,
+            },
+          },
+        });
+      }
+    }
+  }, [isDragging, draggedItem, dropTarget]);
 
   const handleMapChange = (e) => {
     setEditorState({ ...editorState, activeMap: e.target.value });
+  };
+
+  const setLayerIsVisible = (layerIndex) => {
+    const newLayers = [...layers];
+    newLayers[layerIndex].visible = !newLayers[layerIndex].visible;
+    setEditorState({
+      ...editorState,
+      maps: {
+        ...maps,
+        [activeMap]: {
+          ...activeMapData,
+          layers: newLayers,
+        },
+      },
+    });
+  };
+
+  const setLayerIsLocked = (layerIndex) => {
+    const newLayers = [...layers];
+    newLayers[layerIndex].locked = !newLayers[layerIndex].locked;
+    setEditorState({
+      ...editorState,
+      maps: {
+        ...maps,
+        [activeMap]: {
+          ...activeMapData,
+          layers: newLayers,
+        },
+      },
+    });
+  };
+
+  const setLayer = (layerIndex) => {
+    setEditorState({ ...editorState, activeLayer: layerIndex });
   };
 
   return (
@@ -67,8 +125,13 @@ export default function LayersPanel() {
       </label>
       <div className="layers" id="layers">
         {layers.map((layer, index) => (
-          <div key={index} className="layer">
-            {layer.name}
+          <div key={index} className={`layer ${editorState.activeLayer === index ? 'active' : ''}`} data-layer-index={index}>
+            <div className="layer-handle" ref={handleRef}>☰</div>
+            <div className="layer select_layer" onClick={() => setLayer(index)} title={layer.name}>
+              {layer.name} {layer.opacity < 1 ? ` (${layer.opacity})` : ''}
+            </div>
+            <span onClick={() => setLayerIsVisible(index)}>{layer.visible ? '👁️' : '👓'}</span>
+            <span onClick={() => setLayerIsLocked(index)}>{layer.locked ? '🔒' : '🔓'}</span>
           </div>
         ))}
       </div>
