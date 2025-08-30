@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import EditorContext from '../context/EditorContext';
+import tilesetLoaders from '../tilesetLoaders';
 
 export default function TilesetPanel() {
   const { editorState, setEditorState } = useContext(EditorContext);
-  const { tileSets, activeTileset } = editorState;
+  const { tileSets, activeTileset, activeLoader } = editorState;
   const canvasRef = useRef(null);
   const addInputRef = useRef(null);
   const replaceInputRef = useRef(null);
@@ -27,6 +28,10 @@ export default function TilesetPanel() {
 
   const handleTilesetChange = (e) => {
     setEditorState({ ...editorState, activeTileset: e.target.value });
+  };
+
+  const handleLoaderChange = (e) => {
+    setEditorState({ ...editorState, activeLoader: e.target.value });
   };
 
   const handleAddClick = () => {
@@ -135,8 +140,17 @@ export default function TilesetPanel() {
           </div>
           <div className="tileset_opt_field">
             <span>Tileset loader:</span>
-            <select name="tileSetLoaders" id="tileSetLoadersSel">
-              <option value="default">Default</option>
+            <select
+              name="tileSetLoaders"
+              id="tileSetLoadersSel"
+              value={activeLoader}
+              onChange={handleLoaderChange}
+            >
+              {tilesetLoaders.map((loader) => (
+                <option key={loader.id} value={loader.id}>
+                  {loader.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="tileset_info" id="tilesetSrcLabel"></div>

@@ -20,6 +20,7 @@ export const initialState = {
   isMouseDown: false,
   maps: {},
   tileSets: {},
+  activeLoader: 'default',
 };
 
 export const editorReducer = (state, action) => {
