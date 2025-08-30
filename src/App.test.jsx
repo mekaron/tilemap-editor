@@ -1,6 +1,14 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './utils/test-utils';
 import App from './App';
+
+jest.mock('golden-layout', () => ({
+  GoldenLayout: jest.fn(() => ({
+    registerComponent: jest.fn(),
+    loadLayout: jest.fn(),
+    destroy: jest.fn(),
+  })),
+}));
 
 test('App renders menu items', () => {
   const { container } = render(<App />);

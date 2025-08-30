@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import EditorContext from '../context/EditorContext';
 
 export default function TilesetPanel() {
+  const { editorState, setEditorState } = useContext(EditorContext);
+  const { tileSets, activeTileset } = editorState;
+
+  const handleTilesetChange = (e) => {
+    setEditorState({ ...editorState, activeTileset: e.target.value });
+  };
+
   return (
     <div className="card_left_column">
       <details className="details_container sticky_left" id="tilesetDataDetails" open>
         <summary>
           <span id="mapSelectContainer">
             |{' '}
-            <select name="tileSetSelectData" id="tilesetDataSel" className="limited_select"></select>
+            <select name="tileSetSelectData" id="tilesetDataSel" className="limited_select" value={activeTileset} onChange={handleTilesetChange}>
+              {Object.keys(tileSets).map((tileset) => (
+                <option key={tileset} value={tileset}>
+                  {tileSets[tileset].name}
+                </option>
+              ))}
+            </select>
             <button id="replaceTilesetBtn" title="replace tileset">r</button>
             <input id="tilesetReplaceInput" type="file" style={{ display: 'none' }} />
             <button id="addTilesetBtn" title="add tileset">+</button>

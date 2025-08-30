@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import EditorContext from '../context/EditorContext';
 
 export default function NavigationBar() {
+  const { editorState } = useContext(EditorContext);
+
   return (
     <div className="tileset_opt_field header">
       <div className="menu file">

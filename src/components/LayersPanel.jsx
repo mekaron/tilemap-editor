@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import EditorContext from '../context/EditorContext';
 
 export default function LayersPanel() {
+  const { editorState, setEditorState } = useContext(EditorContext);
+  const { maps, activeMap } = editorState;
+
+  const handleMapChange = (e) => {
+    setEditorState({ ...editorState, activeMap: e.target.value });
+  };
+
   return (
     <div className="card_right-column layers">
       <div id="mapSelectContainer" className="tilemaps_selector">
-        <select name="mapsData" id="mapsDataSel"></select>
+        <select name="mapsData" id="mapsDataSel" value={activeMap} onChange={handleMapChange}>
+          {Object.keys(maps).map((map) => (
+            <option key={map} value={map}>
+              {maps[map].name}
+            </option>
+          ))}
+        </select>
         <button id="addMapBtn" title="Add tilemap">+</button>
         <button id="removeMapBtn" title="Remove tilemap">-</button>
         <button id="duplicateMapBtn" title="Duplicate tilemap">📑</button>

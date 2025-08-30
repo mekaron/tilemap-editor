@@ -2,13 +2,14 @@
   "name": "tilemap-editor",
   "version": "0.7.8",
   "description": "A fat-free tilemap editor with zero dependencies and a scalable, mobile-friendly interface!",
-  "main": "src/tilemap-editor.js",
+  "main": "src/main.jsx",
   "scripts": {
     "start": "serve",
     "start:debug": "serve -o /?debug",
     "predeploy": "node updatePwa.js",
     "deploy": "gh-pages -d .",
     "test": "jest",
+    "lint": "eslint src",
     "test:e2e": "cypress run"
   },
   "repository": {
@@ -35,17 +36,19 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "gh-pages": "^3.2.2",
-    "serve": "^12.0.0",
-    "vite": "^5.0.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "jest": "^29.7.0",
-    "@testing-library/react": "^14.0.0",
-    "babel-jest": "^29.7.0",
     "@babel/preset-env": "^7.23.0",
     "@babel/preset-react": "^7.22.15",
-    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/react": "^14.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "babel-jest": "^29.7.0",
+    "cypress": "^13.6.4",
+    "eslint": "^9.34.0",
+    "eslint-plugin-react": "^7.37.5",
+    "gh-pages": "^3.2.2",
+    "jest": "^29.7.0",
     "jest-canvas-mock": "^2.5.2",
-    "cypress": "^13.6.4"
+    "jest-environment-jsdom": "^29.7.0",
+    "serve": "^12.0.0",
+    "vite": "^5.0.0"
   }
 }

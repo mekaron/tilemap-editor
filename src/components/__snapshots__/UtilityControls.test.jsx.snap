@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UtilityControls renders correctly 1`] = `
+<div
+  class="tool_wrapper"
+>
+  <label
+    id="undoBtn"
+    title="Undo"
+  >
+    ↩️️
+  </label>
+  <label
+    id="redoBtn"
+    title="Redo"
+  >
+    🔁️
+  </label>
+  <label
+    id="zoomIn"
+    title="Zoom in"
+  >
+    🔎️+
+  </label>
+  <label
+    id="zoomOut"
+    title="Zoom out"
+  >
+    🔎️-
+  </label>
+  <label
+    id="zoomLabel"
+  >
+    1
+    x️
+  </label>
+</div>
+`;

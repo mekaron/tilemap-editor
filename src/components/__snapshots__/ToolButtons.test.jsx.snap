@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ToolButtons renders correctly 1`] = `
+<div
+  class="tool_wrapper"
+  id="toolButtonsWrapper"
+>
+  <input
+    checked=""
+    class="hidden"
+    id="tool0"
+    name="tool"
+    type="radio"
+    value="0"
+  />
+  <label
+    class="menu"
+    data-value="0"
+    for="tool0"
+    title="paint tiles"
+  >
+    <div
+      id="flipBrushIndicator"
+    >
+      🖌️
+    </div>
+    <div
+      class="dropdown"
+    >
+      <div
+        class="item nohover"
+      >
+        Brush tool options
+      </div>
+      <div
+        class="item"
+      >
+        <label
+          class=""
+          for="toggleFlipX"
+        >
+          Flip tile on x
+        </label>
+        <input
+          id="toggleFlipX"
+          style="display: none;"
+          type="checkbox"
+        />
+        <label
+          class="toggleFlipX"
+        />
+      </div>
+    </div>
+  </label>
+  <input
+    class="hidden"
+    id="tool1"
+    name="tool"
+    type="radio"
+    value="1"
+  />
+  <label
+    data-value="1"
+    for="tool1"
+    title="erase tiles"
+  >
+    🗑️
+  </label>
+  <input
+    class="hidden"
+    id="tool2"
+    name="tool"
+    type="radio"
+    value="2"
+  />
+  <label
+    data-value="2"
+    for="tool2"
+    title="pan"
+  >
+    ✋
+  </label>
+  <input
+    class="hidden"
+    id="tool3"
+    name="tool"
+    type="radio"
+    value="3"
+  />
+  <label
+    data-value="3"
+    for="tool3"
+    title="pick tile"
+  >
+    🎨
+  </label>
+  <input
+    class="hidden"
+    id="tool4"
+    name="tool"
+    type="radio"
+    value="4"
+  />
+  <label
+    data-value="4"
+    for="tool4"
+    title="random from selected"
+  >
+    🎲
+  </label>
+  <input
+    class="hidden"
+    id="tool5"
+    name="tool"
+    type="radio"
+    value="5"
+  />
+  <label
+    data-value="5"
+    for="tool5"
+    title="fill on layer"
+  >
+    🌈
+  </label>
+</div>
+`;

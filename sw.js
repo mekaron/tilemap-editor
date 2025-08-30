@@ -5,7 +5,8 @@ self.addEventListener('install', (e) => {
     caches.open(cacheName).then((cache) => cache.addAll([
       '/',
       '/index.html',
-      '/src/tilemap-editor.js',
+      '/src/main.jsx',
+      '/src/App.jsx',
       '/src/styles.css',
     ])),
   );

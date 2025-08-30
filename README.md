@@ -113,85 +113,19 @@ or
 $ yarn add tilemap-editor
 ```
   
-To use it, you can import it via require or in the index file like so
+To use it, you can import it in your React component like so
 
-   ```js
-   // include the js and css files
-<link rel="stylesheet" href="styles.css"/>
-<script src="tilemap-editor.js"></script>
+   ```jsx
+   import React from 'react';
+   import ReactDOM from 'react-dom';
+   import App from './src/App';
 
-<script>
-fetch("ioJsonData.json")
-  .then(res => res.json())
-  .then(ioJsonData => {
-TilemapEditor.init("tileMapEditor",{ // The id of the element that will become the tilemap-editor (must exist in your dom)
-    // loads tilemap data which was saved before. undefined will start you with an empty map.
-    // Takes a parsed json object with a data struct that tiled-editor can read (an object with maps and tileSets):
-    // { maps : {...}, tileSets: {...}}
-    tileMapData: ioJsonData,
-    // tileSize is used to slice the tileset and give the tilemap the right sized grid
-    tileSize: 32,
-    // How many tiles is the initial map wide
-    mapWidth: 20,
-    // How many tiles is the initial map tall
-    mapHeight: 20,
-    // tileset images src (required)
-    tileSetImages: ["https://i.imgur.com/ztwPZOI.png", "./free.png"],
-    // You can write your own custom load image function here and use it for the tileset src. If you dont, the base64 string will be used instead
-    tileSetLoaders: {
-        fromUrl: {
-            name: "Any url", // name is required and used for the loader's title in the select menu
-            prompt: (setSrc) => { // Pass prompt ot onSelectImage. Prompt lets you do anything without asking the user to select a file
-                const fileUrl = window.prompt("What is the url of the tileset?", "https://i.imgur.com/ztwPZOI.png");
-                if(fileUrl !== null) setSrc(fileUrl)
-            }
-        },
-        imgur: {
-            name: "Imgur (host)",
-            onSelectImage: (setSrc, file, base64) => { // In case you want them to give you a file from the fs, you can do this instead of prompt
-                uploadImageToImgur(file).then(result=>{
-                    console.log(file, base64);
-                    console.log("Uploaded to imgur", result);
-                    setSrc(result.data.link);
-                });
-            },
-        },
-    },
-    // You can write your own tilemap exporters here. Whatever they return will get added to the export data you get out when you trigger onAppy
-    tileMapExporters: {
-        kaboomJs: { // the exporter's key is later used by the onApply option
-            name: "Download KaboomJs boilerplate code", // name of menu entry
-            description: "Exports boilerplate js code for KaboomJs",
-            transformer: ({flattenedData, maps, tileSets, activeMap, downloadAsTextFile})=> {
-                const text = kaboomJsExport({flattenedData, maps, tileSets, activeMap});
-                downloadAsTextFile(text, "KaboomJsMapData.js");// you can use this util method to get your text as a file
-            }
-        },
-    },
-    // If passed, a new button gets added to the header, upon being clicked, you can get data from the tilemap editor and trigger events
-    onApply: {
-        onClick: ({flattenedData, maps, tileSets, activeMap}) => {
-            console.log("onClick, gets the data too")
-            const copyText = document.createElement("input");
-            document.body.appendChild(copyText);
-            copyText.value = kaboomJsExport({flattenedData, maps, tileSets, activeMap});
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); /* For mobile devices */
-            document.execCommand("copy");
-
-            /* Alert the copied text */
-            alert("Copied the text: " + copyText.value);
-            // const kbCode = kaboomJsExport({flattenedData, maps, tileSets, activeMap});
-        },
-        buttonText: "Copy Kb to clip", // controls the apply button's text
-    },
-    onUpdate(ev) { // callback for when the app updates its state (loaded data, tool, etc)
-    // console.log("-->>", ev)
-    }
-})
-console.log("Got App State:",TilemapEditor.getState())
-});
-</script>
+   ReactDOM.render(
+     <React.StrictMode>
+       <App />
+     </React.StrictMode>,
+     document.getElementById('root')
+   );
    ```
    
 
