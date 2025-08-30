@@ -69,6 +69,35 @@ export default function LayersPanel() {
     setEditorState({ ...editorState, activeLayer: layerIndex });
   };
 
+  const addLayer = () => {
+    const newLayerName = prompt(
+      'Enter layer name',
+      `Layer${layers.length + 1}`
+    );
+    if (newLayerName !== null) {
+      const newLayers = [
+        ...layers,
+        {
+          tiles: {},
+          visible: true,
+          name: newLayerName,
+          opacity: 1,
+          locked: false,
+        },
+      ];
+      setEditorState({
+        ...editorState,
+        maps: {
+          ...maps,
+          [activeMap]: {
+            ...activeMapData,
+            layers: newLayers,
+          },
+        },
+      });
+    }
+  };
+
   return (
     <div className="card_right-column layers">
       <div id="mapSelectContainer" className="tilemaps_selector">
@@ -121,7 +150,7 @@ export default function LayersPanel() {
         <label id="activeLayerLabel" className="menu">
           Editing Layer
         </label>
-        <button id="addLayerBtn" title="Add layer">+</button>
+        <button id="addLayerBtn" title="Add layer" onClick={addLayer}>+</button>
       </label>
       <div className="layers" id="layers">
         {layers.map((layer, index) => (
