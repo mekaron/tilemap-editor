@@ -1,0 +1,212 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App renders menu items 1`] = `
+<div
+  class="tileset_opt_field header"
+>
+  <div
+    class="menu file"
+  >
+    <span>
+       File 
+    </span>
+    <div
+      class="dropdown"
+      id="fileMenuDropDown"
+    >
+      <a
+        class="button item button-as-link"
+        href="#popup2"
+      >
+        About
+      </a>
+      <div
+        class="overlay"
+        id="popup2"
+      >
+        <div
+          class="popup"
+        >
+          <h4>
+            Tilemap editor
+          </h4>
+          <a
+            class="close"
+            href="#"
+          >
+            ×
+          </a>
+          <div
+            class="content"
+          >
+            <div>
+              Created by Todor Imreorov (blurymind@gmail.com)
+            </div>
+            <br />
+            <div>
+              <a
+                class="button-as-link"
+                href="https://github.com/blurymind/tilemap-editor"
+              >
+                Project page (Github)
+              </a>
+            </div>
+            <div>
+              <a
+                class="button-as-link"
+                href="https://ko-fi.com/blurymind"
+              >
+                Donate page (ko-fi)
+              </a>
+            </div>
+            <br />
+            <div>
+              Instructions:
+            </div>
+            <div>
+              right click on map - picks tile
+            </div>
+            <div>
+              mid-click - erases tile
+            </div>
+            <div>
+              left-click adds tile
+            </div>
+            <div>
+              right-click on tileset - lets you change tile symbol or metadata
+            </div>
+            <div>
+              left-click - selects tile 
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`App renders tool buttons 1`] = `
+<div
+  class="tool_wrapper"
+  id="toolButtonsWrapper"
+>
+  <input
+    checked=""
+    class="hidden"
+    id="tool0"
+    name="tool"
+    type="radio"
+    value="0"
+  />
+  <label
+    class="menu"
+    data-value="0"
+    for="tool0"
+    title="paint tiles"
+  >
+    <div
+      id="flipBrushIndicator"
+    >
+      🖌️
+    </div>
+    <div
+      class="dropdown"
+    >
+      <div
+        class="item nohover"
+      >
+        Brush tool options
+      </div>
+      <div
+        class="item"
+      >
+        <label
+          class=""
+          for="toggleFlipX"
+        >
+          Flip tile on x
+        </label>
+        <input
+          id="toggleFlipX"
+          style="display: none;"
+          type="checkbox"
+        />
+        <label
+          class="toggleFlipX"
+        />
+      </div>
+    </div>
+  </label>
+  <input
+    class="hidden"
+    id="tool1"
+    name="tool"
+    type="radio"
+    value="1"
+  />
+  <label
+    data-value="1"
+    for="tool1"
+    title="erase tiles"
+  >
+    🗑️
+  </label>
+  <input
+    class="hidden"
+    id="tool2"
+    name="tool"
+    type="radio"
+    value="2"
+  />
+  <label
+    data-value="2"
+    for="tool2"
+    title="pan"
+  >
+    ✋
+  </label>
+  <input
+    class="hidden"
+    id="tool3"
+    name="tool"
+    type="radio"
+    value="3"
+  />
+  <label
+    data-value="3"
+    for="tool3"
+    title="pick tile"
+  >
+    🎨
+  </label>
+  <input
+    class="hidden"
+    id="tool4"
+    name="tool"
+    type="radio"
+    value="4"
+  />
+  <label
+    data-value="4"
+    for="tool4"
+    title="random from selected"
+  >
+    🎲
+  </label>
+  <input
+    class="hidden"
+    id="tool5"
+    name="tool"
+    type="radio"
+    value="5"
+  />
+  <label
+    data-value="5"
+    for="tool5"
+    title="fill on layer"
+  >
+    🌈
+  </label>
+</div>
+`;
