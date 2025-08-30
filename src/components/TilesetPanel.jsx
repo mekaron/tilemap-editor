@@ -37,6 +37,50 @@ export default function TilesetPanel() {
     replaceInputRef.current?.click();
   };
 
+  const getTileCoords = (e) => {
+    const tileSize =
+      tileSets[activeTileset]?.tileSize || editorState.tileSize || 32;
+    const rect = e.target.getBoundingClientRect();
+    const offsetX =
+      e.nativeEvent?.offsetX ?? e.clientX - rect.left;
+    const offsetY =
+      e.nativeEvent?.offsetY ?? e.clientY - rect.top;
+    const x = Math.floor(offsetX / tileSize);
+    const y = Math.floor(offsetY / tileSize);
+    return { x, y };
+  };
+
+  const handleDoubleClick = (e) => {
+    const tileSet = tileSets[activeTileset];
+    if (!tileSet) return;
+    const { x, y } = getTileCoords(e);
+    const key = `${x}-${y}`;
+    const currentSymbol = tileSet.tileData?.[key]?.tileSymbol || '*';
+    const result = window.prompt('Enter tile symbol', currentSymbol);
+    if (result !== null) {
+      const tileData = tileSet.tileData || {};
+      const existing = tileData[key] || {
+        x,
+        y,
+        tilesetIdx: Number(activeTileset),
+      };
+      const updatedTileSet = {
+        ...tileSet,
+        tileData: {
+          ...tileData,
+          [key]: { ...existing, tileSymbol: result },
+        },
+      };
+      setEditorState((prev) => ({
+        ...prev,
+        tileSets: {
+          ...prev.tileSets,
+          [activeTileset]: updatedTileSet,
+        },
+      }));
+    }
+  };
+
   const readFile = (file) =>
     new Promise((resolve) => {
       const reader = new FileReader();
@@ -231,7 +275,12 @@ export default function TilesetPanel() {
       </div>
       <div className="tileset-container">
         <div className="tileset-container-selection"></div>
-        <canvas id="tilesetCanvas" ref={canvasRef}></canvas>
+        <canvas
+          id="tilesetCanvas"
+          ref={canvasRef}
+          onContextMenu={(e) => e.preventDefault()}
+          onDoubleClick={handleDoubleClick}
+        ></canvas>
       </div>
     </div>
   );
