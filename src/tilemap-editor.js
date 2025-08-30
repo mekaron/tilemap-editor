@@ -1734,10 +1734,18 @@ const TilemapEditor = {};
             }
         });
 
-        document.getElementById("toolButtonsWrapper").addEventListener("pointerup",e=>{
+        const handleToolSelect = (e) => {
             if (DEBUG) console.log("ACTIVE_TOOL", e.target.value)
-            if(e.target.getAttribute("name") === "tool") setActiveTool(Number(e.target.value));
-        })
+            const label = e.target.closest('label[data-value]');
+            if (label) {
+                setActiveTool(Number(label.getAttribute('data-value')));
+            } else if (e.target.getAttribute("name") === "tool") {
+                setActiveTool(Number(e.target.value));
+            }
+        };
+        const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
+        toolButtonsWrapper.addEventListener("click", handleToolSelect);
+        toolButtonsWrapper.addEventListener("change", handleToolSelect);
         document.getElementById("gridCropSize").addEventListener('change', e=>{
             setCropSize(Number(e.target.value));
         })
